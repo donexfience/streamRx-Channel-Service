@@ -21,7 +21,7 @@ class App {
   }
   public listen() {
     this.app.listen(this.port, () => {
-      console.log(`CHANNEL-SERVICE RUNNING ON PORT ${this.port}`);
+      console.log(`CHANNEL-SERVICE RUNNING ON PORT  ${this.port}`);
     });
   }
 }
