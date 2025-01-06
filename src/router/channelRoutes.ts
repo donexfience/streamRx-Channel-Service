@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ChannelController } from "../controller/channel-controller";
 import { ChannelService } from "../services/channel-service";
+import { ChannelRepostiory } from "../repository/ChannelRepository";
 
 // Channel routes
 export class ChannelRoutes {
@@ -12,7 +13,9 @@ export class ChannelRoutes {
   }
 
   private initRoutes() {
-    const channelController = new ChannelController(new ChannelService());
+    const channelRepository = new ChannelRepostiory();
+    const channelService = new ChannelService(channelRepository);
+    const channelController = new ChannelController(channelService);
     this.router.post(
       "/",
       channelController.createChannel.bind(channelController)

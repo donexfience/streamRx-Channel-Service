@@ -3,7 +3,7 @@ import Channel, {
 } from "./../model/schema/channel.schema";
 import { IChannelRepository } from "../interfaces/IChannelRepository";
 
-export class ChannleRepostiory implements IChannelRepository {
+export class ChannelRepostiory implements IChannelRepository {
   async create(channelData: Partial<ChannelType>): Promise<ChannelType> {
     const channel = new Channel(channelData);
     return await channel.save();

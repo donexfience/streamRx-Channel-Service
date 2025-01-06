@@ -1,9 +1,9 @@
 import { IChannelService } from "../interfaces/IChannelService";
 import { Channel } from "../model/schema/channel.schema";
-import { ChannleRepostiory } from "../repository/ChannelRepository";
+import { ChannelRepostiory } from "../repository/ChannelRepository";
 
 export class ChannelService implements IChannelService {
-  constructor(private channelRepository: ChannleRepostiory) {}
+  constructor(private channelRepository: ChannelRepostiory) {}
 
   async createChannel(channelData: Partial<Channel>): Promise<Channel> {
     return await this.channelRepository.create(channelData);

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { PlaylistController } from "../controller/playlist-controller";
-import { ChannelService } from "../services/channel-service";
+import { PlaylistService } from "../services/playlist-service";
+import { PlaylistRepository } from "../repository/Playlist.repository";
 
 export class PlaylistRoutes {
   public router: Router;
@@ -8,7 +9,9 @@ export class PlaylistRoutes {
     this.router = Router();
   }
   private initRoutes() {
-    const playlistController = new PlaylistController(new ChannelService());
+    const playlistRepository = new PlaylistRepository();
+    const playlistService = new PlaylistService(playlistRepository);
+    const playlistController = new PlaylistController(playlistService);
     this.router.post(
       "/:channelId/playlists",
       playlistController.createPlaylist.bind(playlistController)
