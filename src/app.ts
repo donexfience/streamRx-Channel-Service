@@ -1,6 +1,4 @@
 import express, { Application } from "express";
-import cors from "cors";
-import morgan from "morgan";
 import { ErrorMiddleware } from "./middlewares/error-middleware";
 
 class App {
@@ -23,7 +21,7 @@ class App {
   }
   public listen() {
     this.app.listen(this.port, () => {
-      console.log(`CART-SERVICE RUNNING ON PORT ${this.port}`);
+      console.log(`CHANNEL-SERVICE RUNNING ON PORT ${this.port}`);
     });
   }
 }
