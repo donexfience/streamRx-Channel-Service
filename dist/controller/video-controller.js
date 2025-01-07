@@ -14,35 +14,94 @@ const validationError_1 = require("../_lib/utils/errors/validationError");
 class VideoController {
     constructor(videoService) {
         this.videoService = videoService;
-    }
-    generatePresignedUrl(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
+        // Generate a pre-signed URL for uploading a video
+        this.generatePresignedUrl = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { fileName, fileType } = req.body;
-                const url = this.videoService.generatePresignedUrl(fileName, fileType);
-                res.status(200).json({ url });
+                if (!fileName || !fileType) {
+                    throw new validationError_1.ValidationError([
+                        {
+                            fields: ["fileName", "fileType"],
+                            constants: "Both fileName and fileType are required.",
+                        },
+                    ]);
+                }
+                const result = yield this.videoService.generatePresignedUrl(fileName, fileType);
+                res.status(200).json({
+                    uploadUrl: result.url,
+                    videoUrl: result.videoUrl,
+                    expiryDate: result.expiryDate,
+                    videoId: result.videoId,
+                });
             }
             catch (error) {
-                res.status(500).json({ error: "Internal server error" });
+                next(error);
             }
         });
-    }
-    uploadVideoRecord(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
+        this.getVideo = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const videoId = req.params.videoId;
+                if (!videoId) {
+                    throw new validationError_1.ValidationError([
+                        {
+                            fields: ["videoId"],
+                            constants: "Video ID is required.",
+                        },
+                    ]);
+                }
+                const video = yield this.videoService.getVideoById(videoId);
+                if (!video) {
+                    res.status(404).json({ error: "Video not found" });
+                }
+                res.status(200).json(video);
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.uploadVideoRecord = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const videoData = req.body;
-                const video = yield this.videoService.saveVideoRecord(videoData);
+                if (!videoData || !videoData.title) {
+                    throw new validationError_1.ValidationError([
+                        {
+                            fields: ["title"],
+                            constants: "Video title is required.",
+                        },
+                    ]);
+                }
+                const file = req.file;
+                if (!file) {
+                    throw new validationError_1.ValidationError([
+                        {
+                            fields: ["file"],
+                            constants: "Uploaded file is required.",
+                        },
+                    ]);
+                }
+                const video = yield this.videoService.uploadAndProcessVideo(file, videoData);
                 res.status(201).json(video);
             }
             catch (error) {
-                res.status(500).json({ error: "Internal server error" });
+                next(error);
             }
         });
     }
+    // Edit video metadata
     editVideo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const video = yield this.videoService.editVideo(req.params.videoId, req.body);
+                const videoId = req.params.videoId;
+                const updateData = req.body;
+                if (!videoId) {
+                    throw new validationError_1.ValidationError([
+                        {
+                            fields: ["videoId"],
+                            constants: "Video ID is required.",
+                        },
+                    ]);
+                }
+                const video = yield this.videoService.editVideo(videoId, updateData);
                 res.status(200).json(video);
             }
             catch (error) {
@@ -50,19 +109,31 @@ class VideoController {
                     res.status(400).json({ error: error.message });
                 }
                 else {
-                    res.status(500).json({ error: "Internal server error" });
+                    res
+                        .status(500)
+                        .json({ error: error.message || "Internal server error" });
                 }
             }
         });
     }
+    // Delete a video and its S3 object
     deleteVideo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield this.videoService.deleteVideo(req.params.videoId);
+                const videoId = req.params.videoId;
+                if (!videoId) {
+                    throw new validationError_1.ValidationError([
+                        {
+                            fields: ["videoId"],
+                            constants: "Video ID is required.",
+                        },
+                    ]);
+                }
+                yield this.videoService.deleteVideo(videoId);
                 res.status(204).send();
             }
             catch (error) {
-                res.status(500).json({ error: "Internal server error" });
+                res.status(500).json({ error: error.message || "Internal server error" });
             }
         });
     }

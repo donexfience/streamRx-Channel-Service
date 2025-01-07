@@ -11,8 +11,8 @@ class CommonRoutes {
     }
     initRoutes() {
         this.router.use('/channels', new channelRoutes_1.ChannelRoutes().router);
-        this.router.use('/channels', new videoRoutes_1.VideoRoutes().router);
-        this.router.use('/channels', new playlistRouters_1.PlaylistRoutes().router);
+        this.router.use('/videoes', new videoRoutes_1.VideoRoutes().router);
+        this.router.use('/playlist', new playlistRouters_1.PlaylistRoutes().router);
     }
 }
 exports.default = new CommonRoutes().router;

@@ -1,5 +1,7 @@
 import express, { Application } from "express";
 import { ErrorMiddleware } from "./middlewares/error-middleware";
+import morgan from "morgan";
+import { Database } from "./config/MongoDB/connection";
 
 class App {
   public app: Application;
@@ -11,13 +13,13 @@ class App {
     this.initializeServices();
   }
   private initializeMiddleware() {
+    this.app.use(morgan("tiny"));
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(ErrorMiddleware.handleError);
-    // Error Handling Middleware
   }
   private async initializeServices() {
-    //db connection
+    await Database.connect();
   }
   public listen() {
     this.app.listen(this.port, () => {

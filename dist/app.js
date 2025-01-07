@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const error_middleware_1 = require("./middlewares/error-middleware");
+const morgan_1 = __importDefault(require("morgan"));
 class App {
     constructor(port) {
         this.app = (0, express_1.default)();
@@ -22,10 +23,10 @@ class App {
         this.initializeServices();
     }
     initializeMiddleware() {
+        this.app.use((0, morgan_1.default)("tiny"));
         this.app.use(express_1.default.json());
         this.app.use(express_1.default.urlencoded({ extended: true }));
         this.app.use(error_middleware_1.ErrorMiddleware.handleError);
-        // Error Handling Middleware
     }
     initializeServices() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -34,7 +35,7 @@ class App {
     }
     listen() {
         this.app.listen(this.port, () => {
-            console.log(`CART-SERVICE RUNNING ON PORT ${this.port}`);
+            console.log(`CHANNEL-SERVICE RUNNING ON PORT  ${this.port}`);
         });
     }
 }

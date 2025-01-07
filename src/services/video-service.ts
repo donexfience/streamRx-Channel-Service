@@ -152,10 +152,10 @@ export class VideoService {
 
   private async getVideoMetadata(filePath: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(filePath, (err, metadata) => {
+      ffmpeg.ffprobe(filePath, (err, metadata:any) => {
         if (err) reject(err);
         const videoStream = metadata.streams.find(
-          (s) => s.codec_type === "video"
+          (s:any) => s.codec_type === "video"
         );
         if (!videoStream) {
           throw new Error("video strema undefined");
