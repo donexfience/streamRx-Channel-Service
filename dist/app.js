@@ -15,12 +15,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const error_middleware_1 = require("./middlewares/error-middleware");
 const morgan_1 = __importDefault(require("morgan"));
+const connection_1 = require("./config/MongoDB/connection");
+const user_service_1 = require("./services/user-service");
+const userRepository_1 = require("./repository/userRepository");
+const consumer_1 = require("./communication/consumer");
 class App {
     constructor(port) {
         this.app = (0, express_1.default)();
         this.port = port;
         this.initializeMiddleware();
         this.initializeServices();
+        this.startConsuming();
     }
     initializeMiddleware() {
         this.app.use((0, morgan_1.default)("tiny"));
@@ -30,12 +35,27 @@ class App {
     }
     initializeServices() {
         return __awaiter(this, void 0, void 0, function* () {
-            //db connection
+            yield connection_1.Database.connect();
         });
     }
     listen() {
         this.app.listen(this.port, () => {
             console.log(`CHANNEL-SERVICE RUNNING ON PORT  ${this.port}`);
+        });
+    }
+    startConsuming() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user_repostiory = new userRepository_1.UserRepository();
+                const userService = new user_service_1.UserService(user_repostiory);
+                const channelServiceConsumer = new consumer_1.ChannelServiceConsumer(userService);
+                yield channelServiceConsumer.consumeUserCreatedQueue();
+                yield channelServiceConsumer.consumeUserUpdatedQueue();
+                console.log("[INFO] Started consuming messages from RabbitMQ queues.");
+            }
+            catch (error) {
+                console.error("[ERROR] Failed to start consuming:", error);
+            }
         });
     }
 }

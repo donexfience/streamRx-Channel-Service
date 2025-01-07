@@ -39,7 +39,7 @@ const videoSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     description: String,
     fileUrl: String,
-    s3Key: string,
+    s3Key: String,
     presignedUrl: String,
     presignedUrlExpiry: Date,
     status: {

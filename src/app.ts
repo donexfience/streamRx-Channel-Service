@@ -2,6 +2,9 @@ import express, { Application } from "express";
 import { ErrorMiddleware } from "./middlewares/error-middleware";
 import morgan from "morgan";
 import { Database } from "./config/MongoDB/connection";
+import { UserService } from "./services/user-service";
+import { UserRepository } from "./repository/userRepository";
+import { ChannelServiceConsumer } from "./communication/consumer";
 
 class App {
   public app: Application;
@@ -11,6 +14,7 @@ class App {
     this.port = port;
     this.initializeMiddleware();
     this.initializeServices();
+    this.startConsuming();
   }
   private initializeMiddleware() {
     this.app.use(morgan("tiny"));
@@ -25,6 +29,17 @@ class App {
     this.app.listen(this.port, () => {
       console.log(`CHANNEL-SERVICE RUNNING ON PORT  ${this.port}`);
     });
+  }
+  private async startConsuming() {
+    try {
+      const user_repostiory = new UserRepository();
+      const userService = new UserService(user_repostiory);
+      const channelServiceConsumer = new ChannelServiceConsumer(userService);
+      await channelServiceConsumer.start();
+      console.log("[INFO] Started consuming messages from RabbitMQ queues.");
+    } catch (error) {
+      console.error("[ERROR] Failed to start consuming:", error);
+    }
   }
 }
 export default App;

@@ -1204,6 +1204,13 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.4.tgz#0b92dcc0cc1c81f6f306a381f28e31b1a56536e9"
   integrity sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==
 
+"@types/amqplib@^0.10.6":
+  version "0.10.6"
+  resolved "https://registry.yarnpkg.com/@types/amqplib/-/amqplib-0.10.6.tgz#f22e03a86f628d4b59751c3fd805f27b810f0cb3"
+  integrity sha512-vQLVypBS1JQcfTXhl1Td1EEeLdtb+vuulOb4TrzYiLyP2aYLMAEzB3pNmEA0jBm0xIXu946Y7Xwl19Eidl32SQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/aws-sdk@^2.7.4":
   version "2.7.4"
   resolved "https://registry.yarnpkg.com/@types/aws-sdk/-/aws-sdk-2.7.4.tgz#b6788639950e5910c844089cac79d5f316de8bb4"
@@ -2863,10 +2870,10 @@ statuses@2.0.1:
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-2.0.1.tgz#55cb000ccf1d48728bd23c685a063998cf1a1b63"
   integrity sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==
 
-streamrx_common@^1.0.29:
-  version "1.0.29"
-  resolved "https://registry.yarnpkg.com/streamrx_common/-/streamrx_common-1.0.29.tgz#b00039ed79ed298bc3a7dc73400ff4db7a6c1f70"
-  integrity sha512-9DKKKrh1KxBT0w9VV5BBSJrIBMEph8OS25X++l0O0Vow5KMAyWKjPsncMmJovHDxJNwlVbtOW4pouggNHGh7ww==
+streamrx_common@^1.0.30:
+  version "1.0.30"
+  resolved "https://registry.yarnpkg.com/streamrx_common/-/streamrx_common-1.0.30.tgz#9d007f897dfb4f8190e7004d8d0303e1190fcce5"
+  integrity sha512-vrDpZmU+ijT9m2TfkhmH0stZvyjQ9VBSgpE7JnEYLOkHKsoA06nbYds5ZPyTfdqbkUGTIZGwuOeZ+aU+2JA0Jw==
   dependencies:
     amqplib "^0.10.5"
     del-cli "^5.1.0"
