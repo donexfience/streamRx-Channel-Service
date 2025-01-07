@@ -13,8 +13,8 @@ class CommonRoutes {
 
     private initRoutes() {
         this.router.use('/channels', new ChannelRoutes().router);
-        this.router.use('/channels', new VideoRoutes().router);
-        this.router.use('/channels', new PlaylistRoutes().router);
+        this.router.use('/videoes', new VideoRoutes().router);
+        this.router.use('/playlist', new PlaylistRoutes().router);
     }
 }
 
