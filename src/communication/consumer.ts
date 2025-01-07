@@ -61,7 +61,7 @@ export class ChannelServiceConsumer {
     try {
       const message = JSON.parse(msg.content.toString());
       console.log("[INFO] User Updated message:", message);
-      await this.userService.updateUserById(message.email, message);
+      await this.userService.updateUserById(message.id, message);
     } catch (error) {
       console.error("[ERROR] Failed to handle user updated message:", error);
       throw error;

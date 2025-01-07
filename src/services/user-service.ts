@@ -6,6 +6,7 @@ export class UserService {
 
 
   async createUser(userData: Partial<User>): Promise<User> {
+    console.log(userData, 'userData in service')
     return await this.userRepository.create(userData); 
   }
 

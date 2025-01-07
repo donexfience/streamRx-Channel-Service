@@ -7,6 +7,7 @@ export interface SocialLink {
 }
 
 export interface User extends Document {
+  _id: mongoose.Types.ObjectId;
   email: string;
   username?: string;
   phone_number?: string;
@@ -28,6 +29,7 @@ const SocialLinkSchema = new Schema({
 
 export const UserSchema = new Schema(
   {
+    _id: { type: Schema.Types.ObjectId, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     username: { type: String, unique: true, sparse: true },
     phone_number: { type: String },

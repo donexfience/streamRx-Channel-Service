@@ -1,9 +1,16 @@
+import mongoose from "mongoose";
 import { IUserRepository } from "../interfaces/IUserRepository";
 import UserModel, { User } from "../model/schema/user.schema";
 
 export class UserRepository implements IUserRepository {
   async create(user: Partial<User>): Promise<User> {
+    console.log(user, "userData in repository");
+    if (user._id && typeof user._id === "string") {
+      user._id = new mongoose.Types.ObjectId(user._id);
+    }
     const newUser = new UserModel(user);
+    console.log(newUser, "newUser in repository");
+
     return await newUser.save();
   }
 
