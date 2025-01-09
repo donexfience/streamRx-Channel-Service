@@ -33,4 +33,12 @@ export class ChannelRepostiory implements IChannelRepository {
     }
     return channel;
   }
+
+  async findByEmail(email: string): Promise<ChannelType> {
+    const channel = await Channel.findOne({ email });
+    if (!channel) {
+      throw new Error(`Channel with email ${email} not found`);
+    }
+    return channel;
+  }
 }

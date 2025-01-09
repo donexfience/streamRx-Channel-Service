@@ -4,18 +4,24 @@ import { VideoRoutes } from "./videoRoutes";
 import { PlaylistRoutes } from "./playlistRouters";
 
 class CommonRoutes {
-    public router: Router;
+  public router: Router;
 
-    constructor() {
-        this.router = Router();
-        this.initRoutes();
-    }
+  constructor() {
+    this.router = Router();
+    this.initRoutes();
+  }
 
-    private initRoutes() {
-        this.router.use('/channels', new ChannelRoutes().router);
-        this.router.use('/videoes', new VideoRoutes().router);
-        this.router.use('/playlist', new PlaylistRoutes().router);
-    }
+  private initRoutes() {
+    this.router.use((req, res, next) => {
+      console.log(
+        `[${new Date().toLocaleString()}] ${req.method} ${req.originalUrl}`
+      );
+      next();
+    });
+    this.router.use("/channels", new ChannelRoutes().router);
+    this.router.use("/videoes", new VideoRoutes().router);
+    this.router.use("/playlist", new PlaylistRoutes().router);
+  }
 }
 
-export default new CommonRoutes().router
+export default new CommonRoutes().router;

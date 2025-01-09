@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express, { Application } from "express";
 import { ErrorMiddleware } from "./middlewares/error-middleware";
 import morgan from "morgan";
@@ -5,6 +6,7 @@ import { Database } from "./config/MongoDB/connection";
 import { UserService } from "./services/user-service";
 import { UserRepository } from "./repository/userRepository";
 import { ChannelServiceConsumer } from "./communication/consumer";
+import CommonRoutes from "./router/commonRouter";
 
 class App {
   public app: Application;
@@ -17,9 +19,26 @@ class App {
     this.startConsuming();
   }
   private initializeMiddleware() {
+    this.app.use(cors({
+      origin: ['http://localhost:3001'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      credentials: true,
+      allowedHeaders: [
+        'Origin',
+        'X-Requested-With',
+        'Content-Type',
+        'Accept',
+        'Authorization',
+        'accesstoken',
+        'refreshtoken',
+      ],
+      exposedHeaders: ['Authorization'],
+    }));
     this.app.use(morgan("tiny"));
     this.app.use(express.json());
+
     this.app.use(express.urlencoded({ extended: true }));
+    this.app.use("/", CommonRoutes);
     this.app.use(ErrorMiddleware.handleError);
   }
   private async initializeServices() {
