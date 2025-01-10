@@ -11,8 +11,10 @@ export class VideoRepository implements IVideoRepository {
     videoId: string,
     updateData: Partial<VideoType>
   ): Promise<VideoType> {
-    const video = await Video.findByIdAndUpdate(videoId, updateData, { new: true });
-    if (!video) throw new Error('Video not found');
+    const video = await Video.findByIdAndUpdate(videoId, updateData, {
+      new: true,
+    });
+    if (!video) throw new Error("Video not found");
     return video;
   }
 
@@ -20,9 +22,25 @@ export class VideoRepository implements IVideoRepository {
     await Video.findByIdAndDelete(videoId);
   }
 
+  async getAll(skip: number = 0, limit: number = 10): Promise<VideoType[]> {
+    try {
+      const videos = await Video.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("channelId")
+        .lean();
+
+      return videos;
+    } catch (error) {
+      console.error("Error in VideoRepository.getAll:", error);
+      throw error;
+    }
+  }
+
   async findById(videoId: string): Promise<VideoType> {
     const video = await Video.findById(videoId);
-    if (!video) throw new Error('Video not found');
+    if (!video) throw new Error("Video not found");
     return video;
   }
 }

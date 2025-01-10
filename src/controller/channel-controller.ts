@@ -8,7 +8,7 @@ export class ChannelController {
   async createChannel(req: Request, res: Response) {
     try {
       const channel = await this.channelService.createChannel(req.body);
-      res.status(201).json(channel);
+      res.status(201).json({ success: true, data: channel });
     } catch (error) {
       console.log(error, "error of channel creation in controller");
       if (error instanceof ValidationError) {
@@ -40,6 +40,17 @@ export class ChannelController {
       await this.channelService.deleteChannel(req.params.id);
       res.status(204).send();
     } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+  async getChannelByEmail(req: Request, res: Response) {
+    try {
+      const channel = await this.channelService.getChannelByEmail(
+        req.params.email
+      );
+      res.json(channel);
+    } catch (error) {
+      console.error(error, "error of get channel by email in controller");
       res.status(500).json({ error: "Internal server error" });
     }
   }

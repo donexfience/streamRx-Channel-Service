@@ -1,7 +1,8 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Types, Document, Schema } from "mongoose";
 
 export interface Video extends Document {
-  channelId: string;
+  _id: Types.ObjectId;
+  channelId: Types.ObjectId;
   title: string;
   description?: string;
   fileUrl?: string;
@@ -9,7 +10,7 @@ export interface Video extends Document {
   presignedUrlExpiry?: Date;
   status: "pending" | "processing" | "ready" | "failed";
   processingProgress: number;
-  s3Key:string;
+  s3Key: string;
   processingError?: string;
   metadata?: {
     originalFileName: string;
@@ -30,7 +31,7 @@ export interface Video extends Document {
 
 const videoSchema = new Schema<Video>(
   {
-    channelId: { type: String, required: true },
+    channelId: { type: Schema.Types.ObjectId, ref: "Channel", required: true },
     title: { type: String, required: true },
     description: String,
     fileUrl: String,

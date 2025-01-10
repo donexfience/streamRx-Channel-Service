@@ -39,7 +39,7 @@ class App {
 
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use("/", CommonRoutes);
-    this.app.use(ErrorMiddleware.handleError);
+    // this.app.use(ErrorMiddleware.handleError);
   }
   private async initializeServices() {
     await Database.connect();

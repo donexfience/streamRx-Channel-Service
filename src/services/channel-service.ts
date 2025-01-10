@@ -12,36 +12,39 @@ export class ChannelService implements IChannelService {
   ) {}
 
   async createChannel(channelData: Partial<Channel>): Promise<Channel> {
-    let user;
-    if (channelData.email) {
-      const existingChannel = await this.channelRepository.findByEmail(
-        channelData.email
-      );
-      if (existingChannel) {
-        throw new Error("Channel with this email already exists");
+    try {
+      console.log(channelData.email, "channel data email");
+
+      if (!channelData.email) {
+        throw new Error("Email is required");
       }
-    }
-
-    if (channelData.email) {
-      user = await this.userRepository.findByEmail(channelData.email);
-
+      try {
+        const existingChannel = await this.channelRepository.findByEmail(
+          channelData.email
+        );
+        if (existingChannel) {
+          throw new Error("Channel with this email already exists");
+        }
+      } catch (error) {
+        if (!(error instanceof Error) || !error.message.includes("not found")) {
+          throw error;
+        }
+      }
+      const user = await this.userRepository.findByEmail(channelData.email);
       if (!user) {
         throw new Error("User not found");
       }
+      const newData: Partial<Channel> = {
+        ...channelData,
+        ownerId: new Types.ObjectId(user._id.toString()),
+      };
+
+      return await this.channelRepository.create(newData);
+    } catch (error) {
+      console.error("Error in createChannel:", error);
+      throw error;
     }
-
-    const newData: Partial<Channel> = {
-      ...channelData,
-      ownerId: user ? new Types.ObjectId(user._id.toString()) : undefined,
-    };
-
-    if (!newData.ownerId) {
-      throw new Error("Owner ID is missing");
-    }
-
-    return await this.channelRepository.create(newData);
   }
-
   async editChannel(
     channelId: string,
     updateData: Partial<Channel>
@@ -53,6 +56,6 @@ export class ChannelService implements IChannelService {
     await this.channelRepository.delete(channelId);
   }
   async getChannelByEmail(email: string): Promise<Channel> {
-    return await this.channelRepository.findByEmail(email);
+    return await this.channelRepository.findByEmails(email);
   }
 }

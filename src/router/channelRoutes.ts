@@ -25,6 +25,10 @@ export class ChannelRoutes {
       "/",
       channelController.createChannel.bind(channelController)
     );
+    this.router.get(
+      "/:email",
+      channelController.getChannelByEmail.bind(channelController)
+    );
     this.router.put(
       "/:id",
       channelController.editChannel.bind(channelController)

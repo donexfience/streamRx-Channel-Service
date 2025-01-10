@@ -1,37 +1,10 @@
 import { Request, RequestHandler, Response } from "express";
 import { ValidationError } from "../_lib/utils/errors/validationError";
 import { VideoService } from "../services/video-service";
+import mongoose, { Types, Document, Schema } from "mongoose";
 
 export class VideoController {
   constructor(private videoService: VideoService) {}
-
-  // Generate a pre-signed URL for uploading a video
-  generatePresignedUrl: RequestHandler = async (req, res, next) => {
-    try {
-      const { fileName, fileType } = req.body;
-      if (!fileName || !fileType) {
-        throw new ValidationError([
-          {
-            fields: ["fileName", "fileType"],
-            constants: "Both fileName and fileType are required.",
-          },
-        ]);
-      }
-
-      const result = await this.videoService.generatePresignedUrl(
-        fileName,
-        fileType
-      );
-      res.status(200).json({
-        uploadUrl: result.url,
-        videoUrl: result.videoUrl,
-        expiryDate: result.expiryDate,
-        videoId: result.videoId,
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
 
   getVideo: RequestHandler = async (req, res, next) => {
     try {
@@ -56,9 +29,40 @@ export class VideoController {
     }
   };
 
-  uploadVideoRecord: RequestHandler = async (req, res, next) => {
+  getAllVideo: RequestHandler = async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const videos = await this.videoService.getAllVideo(page, limit);
+
+      if (!videos || videos.length === 0) {
+        res.status(404).json({
+          success: false,
+          message: "No videos found",
+          data: null,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Videos retrieved successfully",
+        data: videos,
+        pagination: {
+          page,
+          limit,
+        },
+      });
+    } catch (error) {
+      console.error("Error in getAllVideo:", error);
+      next(error);
+    }
+  };
+  createVideoRecord: RequestHandler = async (req, res, next) => {
     try {
       const videoData = req.body;
+      const { channelId } = req.params;
       if (!videoData || !videoData.title) {
         throw new ValidationError([
           {
@@ -67,29 +71,25 @@ export class VideoController {
           },
         ]);
       }
-
-      const file = req.file;
-      if (!file) {
+      if (!channelId) {
         throw new ValidationError([
-          {
-            fields: ["file"],
-            constants: "Uploaded file is required.",
-          },
+          { fields: ["channelId"], constants: "channel Id is required" },
         ]);
       }
 
-      const video = await this.videoService.uploadAndProcessVideo(
-        file,
-        videoData
+      console.log(videoData, "video data here in controller");
+      console.log("channel id is here", channelId);
+      const video = await this.videoService.createVideoRecord(
+        videoData,
+        channelId
       );
       res.status(201).json(video);
     } catch (error) {
-      next(error);
+      console.log(error, "error in controller");
     }
   };
 
-  // Edit video metadata
-  async editVideo(req: Request, res: Response) {
+  editVideo: RequestHandler = async (req, res, next) => {
     try {
       const videoId = req.params.videoId;
       const updateData = req.body;
@@ -104,19 +104,12 @@ export class VideoController {
 
       const video = await this.videoService.editVideo(videoId, updateData);
       res.status(200).json(video);
-    } catch (error: any) {
-      if (error instanceof ValidationError) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res
-          .status(500)
-          .json({ error: error.message || "Internal server error" });
-      }
+    } catch (error) {
+      next(error);
     }
-  }
+  };
 
-  // Delete a video and its S3 object
-  async deleteVideo(req: Request, res: Response) {
+  deleteVideo: RequestHandler = async (req, res, next) => {
     try {
       const videoId = req.params.videoId;
       if (!videoId) {
@@ -130,10 +123,8 @@ export class VideoController {
 
       await this.videoService.deleteVideo(videoId);
       res.status(204).send();
-    } catch (error: any) {
-      res.status(500).json({ error: error.message || "Internal server error" });
+    } catch (error) {
+      next(error);
     }
-  }
-
-  // Fetch video details
+  };
 }

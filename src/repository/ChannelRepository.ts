@@ -34,11 +34,29 @@ export class ChannelRepostiory implements IChannelRepository {
     return channel;
   }
 
+  async findByEmails(email: string): Promise<ChannelType> {
+    const channel = await Channel.findOne()
+      .populate({
+        path: "ownerId",
+        match: { email: email },
+        select: "email",
+      })
+      .exec();
+    if (!channel || !channel.ownerId) {
+      throw new Error(`Channel with owner email ${email} not found`);
+    }
+    return channel;
+  }
+
   async findByEmail(email: string): Promise<ChannelType> {
-    const channel = await Channel.findOne({ email });
+    const channel = await Channel.findOne({ email })
+      .populate({ path: "ownerId", select: "email" })
+      .exec();
+
     if (!channel) {
       throw new Error(`Channel with email ${email} not found`);
     }
+
     return channel;
   }
 }
