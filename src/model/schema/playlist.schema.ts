@@ -1,19 +1,82 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Types, Document, Schema } from "mongoose";
 
 export interface Playlist extends Document {
+  _id: Types.ObjectId;
   name: string;
   description: string;
-  channelId: string;
-  videos: string[];
+  visibility: "public" | "private" | "unlisted";
+  category: string;
+  tags: string[];
+  thumbnailUrl: string;
+  selectedVideos: Types.ObjectId[];
+  videoUrls: string[];
+  videoIds: Types.ObjectId[];
+  status: "active" | "deleted";
   createdAt: Date;
   updatedAt: Date;
 }
 
-const PlaylistSchema = new Schema({
-    name: { type: String, required: true },
-    description: { type: String },
-    channelId: { type: Schema.Types.ObjectId, required: true, ref: 'Channel' },
-    videos: [{ type: Schema.Types.ObjectId, ref: 'Video' }],
-}, { timestamps: true });
+const playlistSchema = new Schema<Playlist>(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 5000,
+    },
+    visibility: {
+      type: String,
+      enum: ["public", "private", "unlisted"],
+      default: "private",
+      required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    tags: [{
+      type: String,
+      trim: true,
+    }],
+    thumbnailUrl: {
+      type: String,
+      required: true,
+    },
+    selectedVideos: [{
+      type: Schema.Types.ObjectId,
+      ref: "Video",
+      required: true,
+    }],
+    videoUrls: [{
+      type: String,
+    }],
+    videoIds: [{
+      type: Schema.Types.ObjectId,
+      ref: "Video",
+      required: true,
+    }],
+    status: {
+      type: String,
+      enum: ["active", "deleted"],
+      default: "active",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-export default mongoose.model<Playlist>('Playlist', PlaylistSchema);
+// Indexes for better query performance
+playlistSchema.index({ channelId: 1, createdAt: -1 });
+playlistSchema.index({ visibility: 1, category: 1 });
+playlistSchema.index({ status: 1 });
+
+const Playlist = mongoose.model<Playlist>("Playlist", playlistSchema);
+
+export default Playlist;

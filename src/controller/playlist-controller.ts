@@ -1,64 +1,84 @@
+import { Request, Response, RequestHandler } from "express";
 import { ValidationError } from "../_lib/utils/errors/validationError";
-import { Request, Response } from "express";
-import { ChannelService } from "../services/channel-service";
 import { PlaylistService } from "../services/playlist-service";
-export class PlaylistController {
-  constructor(private PlaylistService: PlaylistService) {}
 
-  async createPlaylist(req: Request, res: Response) {
+export class PlaylistController {
+  constructor(private playlistService: PlaylistService) {}
+
+  getAllPlaylists: RequestHandler = async (req, res, next) => {
     try {
-      const playlist = await this.PlaylistService.createPlaylist(
-        req.params.channelId,
-        req.body
-      );
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const playlists = await this.playlistService.getAllPlaylists(page, limit);
+      res.status(200).json({
+        success: true,
+        message: "Playlists retrieved successfully",
+        data: playlists,
+        pagination: { page, limit },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPlaylist: RequestHandler = async (req, res, next) => {
+    try {
+      const playlistId = req.params.playlistId;
+      if (!playlistId) {
+        throw new ValidationError([{ fields: ["playlistId"], constants: "Playlist ID is required." }]);
+      }
+
+      const playlist = await this.playlistService.getPlaylistById(playlistId);
+      if (!playlist) {
+        res.status(404).json({ error: "Playlist not found" });
+      }
+
+      res.status(200).json(playlist);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  createPlaylist: RequestHandler = async (req, res, next) => {
+    try {
+      const playlistData = req.body;
+      if (!playlistData.name || !playlistData.description) {
+        throw new ValidationError([{ fields: ["name", "description"], constants: "Name and Description are required." }]);
+      }
+
+      const playlist = await this.playlistService.createPlaylist(playlistData);
       res.status(201).json(playlist);
     } catch (error) {
-      if (error instanceof ValidationError) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: "Internal server error" });
-      }
+      next(error);
     }
-  }
+  };
 
-  async editPlaylist(req: Request, res: Response) {
+  updatePlaylist: RequestHandler = async (req, res, next) => {
     try {
-      const playlist = await this.PlaylistService.editPlaylist(
-        req.params.playlistId,
-        req.body
-      );
-      res.json(playlist);
+      const playlistId = req.params.playlistId;
+      const updateData = req.body;
+      if (!playlistId) {
+        throw new ValidationError([{ fields: ["playlistId"], constants: "Playlist ID is required." }]);
+      }
+
+      const updatedPlaylist = await this.playlistService.updatePlaylist(playlistId, updateData);
+      res.status(200).json(updatedPlaylist);
     } catch (error) {
-      if (error instanceof ValidationError) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: "Internal server error" });
-      }
+      next(error);
     }
-  }
+  };
 
-  async deletePlaylist(req: Request, res: Response) {
+  deletePlaylist: RequestHandler = async (req, res, next) => {
     try {
-      await this.PlaylistService.deletePlaylist(req.params.playlistId);
+      const playlistId = req.params.playlistId;
+      if (!playlistId) {
+        throw new ValidationError([{ fields: ["playlistId"], constants: "Playlist ID is required." }]);
+      }
+
+      await this.playlistService.deletePlaylist(playlistId);
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      next(error);
     }
-  }
-
-  async addVideoToPlaylist(req: Request, res: Response) {
-    try {
-      const playlist = await this.PlaylistService.addVideoToPlaylist(
-        req.params.playlistId,
-        req.body.videoId
-      );
-      res.json(playlist);
-    } catch (error) {
-      if (error instanceof ValidationError) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: "Internal server error" });
-      }
-    }
-  }
+  };
 }

@@ -31,6 +31,11 @@ export class VideoService {
     }
   }
 
+  async getVideosByTitle(title?: string) {
+    const filter = title ? { title: { $regex: title, $options: "i" } } : {};
+    return await this.videoRepository.findByQuery(filter);
+  }
+
   async editVideo(videoId: string, updateData: Partial<Video>): Promise<Video> {
     return await this.videoRepository.update(videoId, updateData);
   }
@@ -38,7 +43,7 @@ export class VideoService {
   async getAllVideo(page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     return await this.videoRepository.getAll(skip, limit);
-}
+  }
 
   async getVideoById(videoId: string): Promise<Video> {
     return await this.videoRepository.findById(videoId);

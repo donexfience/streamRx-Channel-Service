@@ -43,4 +43,16 @@ export class VideoRepository implements IVideoRepository {
     if (!video) throw new Error("Video not found");
     return video;
   }
+
+  async findByQuery(filter: Record<string, any>): Promise<VideoType[]> {
+    try {
+      return await Video.find(filter)
+        .sort({ createdAt: -1 }) 
+        .populate("channelId") 
+        .lean(); 
+    } catch (error) {
+      console.error("Error in VideoRepository.findByQuery:", error);
+      throw error;
+    }
+  }
 }

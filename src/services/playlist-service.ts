@@ -1,22 +1,27 @@
-// services/playlist-service.ts
-
 import { Playlist } from "../model/schema/playlist.schema";
 import { PlaylistRepository } from "../repository/Playlist.repository";
 
 export class PlaylistService {
   constructor(private playlistRepository: PlaylistRepository) {}
 
-  async createPlaylist(
-    channelId: string,
-    playlistData: any
-  ): Promise<Playlist> {
-    return await this.playlistRepository.create({
-      ...playlistData,
-      channelId,
-    });
+  async createPlaylist(playlistData: Partial<Playlist>): Promise<Playlist> {
+    try {
+      return await this.playlistRepository.create(playlistData);
+    } catch (error: any) {
+      throw new Error(`Failed to create playlist: ${error.message}`);
+    }
   }
 
-  async editPlaylist(
+  async getAllPlaylists(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    return await this.playlistRepository.getAll(skip, limit);
+  }
+
+  async getPlaylistById(playlistId: string): Promise<Playlist> {
+    return await this.playlistRepository.findById(playlistId);
+  }
+
+  async updatePlaylist(
     playlistId: string,
     updateData: Partial<Playlist>
   ): Promise<Playlist> {
@@ -25,12 +30,5 @@ export class PlaylistService {
 
   async deletePlaylist(playlistId: string): Promise<void> {
     await this.playlistRepository.delete(playlistId);
-  }
-
-  async addVideoToPlaylist(
-    playlistId: string,
-    videoId: string
-  ): Promise<Playlist> {
-    return await this.playlistRepository.addVideo(playlistId, videoId);
   }
 }

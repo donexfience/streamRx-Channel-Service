@@ -1,24 +1,15 @@
-import { IPlaylistRepository } from "../interfaces/IPlaylistRepository";
-import Playlist, {
-  Playlist as PlaylistType,
-} from "../model/schema/playlist.schema";
+import Playlist, { Playlist as PlaylistType } from "../model/schema/playlist.schema";
+import { Types } from "mongoose";
 
-export class PlaylistRepository implements IPlaylistRepository {
+export class PlaylistRepository {
   async create(playlistData: Partial<PlaylistType>): Promise<PlaylistType> {
     const playlist = new Playlist(playlistData);
     return await playlist.save();
   }
 
-  async update(
-    playlistId: string,
-    updateData: Partial<PlaylistType>
-  ): Promise<PlaylistType> {
-    const playlist = await Playlist.findByIdAndUpdate(playlistId, updateData, {
-      new: true,
-    });
-    if (!playlist) {
-      throw new Error("Playlist not found");
-    }
+  async update(playlistId: string, updateData: Partial<PlaylistType>): Promise<PlaylistType> {
+    const playlist = await Playlist.findByIdAndUpdate(playlistId, updateData, { new: true });
+    if (!playlist) throw new Error("Playlist not found");
     return playlist;
   }
 
@@ -26,23 +17,32 @@ export class PlaylistRepository implements IPlaylistRepository {
     await Playlist.findByIdAndDelete(playlistId);
   }
 
+  async getAll(skip: number = 0, limit: number = 10): Promise<PlaylistType[]> {
+    try {
+      const playlists = await Playlist.find()
+        .skip(skip)
+        .limit(limit)
+        .lean();
+      return playlists;
+    } catch (error) {
+      console.error("Error in PlaylistRepository.getAll:", error);
+      throw error;
+    }
+  }
+
   async findById(playlistId: string): Promise<PlaylistType> {
     const playlist = await Playlist.findById(playlistId);
-    if (!playlist) {
-      throw new Error("Playlist not found");
-    }
+    if (!playlist) throw new Error("Playlist not found");
     return playlist;
   }
 
-  async addVideo(playlistId: string, videoId: string): Promise<PlaylistType> {
-    const playlist = await Playlist.findByIdAndUpdate(
-      playlistId,
-      { $addToSet: { videos: videoId } },
-      { new: true }
-    );
-    if (!playlist) {
-      throw new Error("Playlist not found");
+  async findByQuery(filter: Record<string, any>): Promise<PlaylistType[]> {
+    try {
+      return await Playlist.find(filter)
+        .lean();
+    } catch (error) {
+      console.error("Error in PlaylistRepository.findByQuery:", error);
+      throw error;
     }
-    return playlist;
   }
 }

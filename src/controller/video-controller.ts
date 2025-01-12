@@ -29,6 +29,29 @@ export class VideoController {
     }
   };
 
+  getVideoBySearchQuery: RequestHandler = async (req, res, next) => {
+    try {
+      const { title } = req.query;
+      let decodedTitle;
+      if (title) {
+        if (typeof title === "string") {
+          console.log(title, decodeURIComponent(title), "title ");
+          decodedTitle = decodeURIComponent(title);
+        } else {
+          console.log(title, "title is not a string");
+        }
+      }
+
+      const videos = await this.videoService.getVideosByTitle(
+        decodedTitle as string
+      );
+      res.status(200).json(videos);
+    } catch (error) {
+      console.error("Error fetching videos by title:", error);
+      res.status(500).json({ message: "Failed to fetch videos by title" });
+    }
+  };
+
   getAllVideo: RequestHandler = async (req, res, next) => {
     try {
       const page = parseInt(req.query.page as string) || 1;

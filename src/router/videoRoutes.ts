@@ -21,6 +21,8 @@ export class VideoRoutes {
     //get all video route
     this.router.get("/all", videoController.getAllVideo.bind(videoController));
 
+    this.router.get("/video", videoController.getVideoBySearchQuery.bind(videoController));
+
     // Create video record route
     this.router.post(
       "/channel/:channelId",
