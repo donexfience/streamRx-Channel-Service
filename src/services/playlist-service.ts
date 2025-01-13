@@ -12,13 +12,22 @@ export class PlaylistService {
     }
   }
 
-  async getAllPlaylists(page: number = 1, limit: number = 10 ,channelId:string) {
+  async getAllPlaylists(
+    page: number = 1,
+    limit: number = 10,
+    channelId: string
+  ) {
     const skip = (page - 1) * limit;
-    return await this.playlistRepository.getAll(skip, limit,channelId);
+    return await this.playlistRepository.getAll(skip, limit, channelId);
   }
 
   async getPlaylistById(playlistId: string): Promise<Playlist> {
     return await this.playlistRepository.findById(playlistId);
+  }
+
+  async getPlayListByTitle(title?: string) {
+    const filter = title ? { name: { $regex: title, $options: "i" } } : {};
+    return await this.playlistRepository.findByQuery(filter);
   }
 
   async updatePlaylist(

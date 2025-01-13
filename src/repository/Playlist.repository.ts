@@ -50,9 +50,12 @@ export class PlaylistRepository {
 
   async findByQuery(filter: Record<string, any>): Promise<PlaylistType[]> {
     try {
-      return await Playlist.find(filter).lean();
+      return await Playlist.find(filter)
+        .sort({ createdAt: -1 })
+        .populate("channelId")
+        .lean();
     } catch (error) {
-      console.error("Error in PlaylistRepository.findByQuery:", error);
+      console.error("Error in VideoRepository.findByQuery:", error);
       throw error;
     }
   }

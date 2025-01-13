@@ -28,6 +28,11 @@ export class PlaylistRoutes {
       playlistController.getAllPlaylists.bind(playlistController)
     );
 
+    this.router.get(
+      "/playlist",
+      playlistController.getPlaylist.bind(playlistController)
+    );
+
     // Create playlist route
     this.router.post(
       "/",

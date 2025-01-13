@@ -27,6 +27,7 @@ export interface Video extends Document {
   visibility: "public" | "private" | "unlisted";
   createdAt: Date;
   updatedAt: Date;
+  selectedPlaylist: Types.ObjectId[];
 }
 
 const videoSchema = new Schema<Video>(
@@ -65,6 +66,13 @@ const videoSchema = new Schema<Video>(
       enum: ["public", "private", "unlisted"],
       default: "private",
     },
+    selectedPlaylist: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Playlist",
+        required: true,
+      },
+    ],
   },
   { timestamps: true }
 );
