@@ -9,7 +9,8 @@ export class PlaylistController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const playlists = await this.playlistService.getAllPlaylists(page, limit);
+      const channelId = req.params.channelId;
+      const playlists = await this.playlistService.getAllPlaylists(page, limit,channelId);
       res.status(200).json({
         success: true,
         message: "Playlists retrieved successfully",

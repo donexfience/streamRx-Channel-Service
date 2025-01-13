@@ -3,6 +3,7 @@ import mongoose, { Types, Document, Schema } from "mongoose";
 export interface Playlist extends Document {
   _id: Types.ObjectId;
   name: string;
+  channelId: Types.ObjectId;
   description: string;
   visibility: "public" | "private" | "unlisted";
   category: string;
@@ -18,6 +19,7 @@ export interface Playlist extends Document {
 
 const playlistSchema = new Schema<Playlist>(
   {
+    channelId: { type: Schema.Types.ObjectId, ref: "Channel", required: true },
     name: {
       type: String,
       required: true,
@@ -40,27 +42,35 @@ const playlistSchema = new Schema<Playlist>(
       required: true,
       trim: true,
     },
-    tags: [{
-      type: String,
-      trim: true,
-    }],
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     thumbnailUrl: {
       type: String,
       required: true,
     },
-    selectedVideos: [{
-      type: Schema.Types.ObjectId,
-      ref: "Video",
-      required: true,
-    }],
-    videoUrls: [{
-      type: String,
-    }],
-    videoIds: [{
-      type: Schema.Types.ObjectId,
-      ref: "Video",
-      required: true,
-    }],
+    selectedVideos: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Video",
+        required: true,
+      },
+    ],
+    videoUrls: [
+      {
+        type: String,
+      },
+    ],
+    videoIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Video",
+        required: true,
+      },
+    ],
     status: {
       type: String,
       enum: ["active", "deleted"],

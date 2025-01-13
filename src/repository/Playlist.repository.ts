@@ -1,14 +1,22 @@
-import Playlist, { Playlist as PlaylistType } from "../model/schema/playlist.schema";
+import Playlist, {
+  Playlist as PlaylistType,
+} from "../model/schema/playlist.schema";
 import { Types } from "mongoose";
 
 export class PlaylistRepository {
   async create(playlistData: Partial<PlaylistType>): Promise<PlaylistType> {
+    console.log(playlistData, "palylist data in the repository");
     const playlist = new Playlist(playlistData);
     return await playlist.save();
   }
 
-  async update(playlistId: string, updateData: Partial<PlaylistType>): Promise<PlaylistType> {
-    const playlist = await Playlist.findByIdAndUpdate(playlistId, updateData, { new: true });
+  async update(
+    playlistId: string,
+    updateData: Partial<PlaylistType>
+  ): Promise<PlaylistType> {
+    const playlist = await Playlist.findByIdAndUpdate(playlistId, updateData, {
+      new: true,
+    });
     if (!playlist) throw new Error("Playlist not found");
     return playlist;
   }
@@ -17,9 +25,13 @@ export class PlaylistRepository {
     await Playlist.findByIdAndDelete(playlistId);
   }
 
-  async getAll(skip: number = 0, limit: number = 10): Promise<PlaylistType[]> {
+  async getAll(
+    skip: number = 0,
+    limit: number = 10,
+    channelId: string
+  ): Promise<PlaylistType[]> {
     try {
-      const playlists = await Playlist.find()
+      const playlists = await Playlist.find({ channelId: channelId })
         .skip(skip)
         .limit(limit)
         .lean();
@@ -38,8 +50,7 @@ export class PlaylistRepository {
 
   async findByQuery(filter: Record<string, any>): Promise<PlaylistType[]> {
     try {
-      return await Playlist.find(filter)
-        .lean();
+      return await Playlist.find(filter).lean();
     } catch (error) {
       console.error("Error in PlaylistRepository.findByQuery:", error);
       throw error;

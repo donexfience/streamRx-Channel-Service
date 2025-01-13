@@ -12,9 +12,9 @@ export class PlaylistService {
     }
   }
 
-  async getAllPlaylists(page: number = 1, limit: number = 10) {
+  async getAllPlaylists(page: number = 1, limit: number = 10 ,channelId:string) {
     const skip = (page - 1) * limit;
-    return await this.playlistRepository.getAll(skip, limit);
+    return await this.playlistRepository.getAll(skip, limit,channelId);
   }
 
   async getPlaylistById(playlistId: string): Promise<Playlist> {

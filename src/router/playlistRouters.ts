@@ -17,18 +17,33 @@ export class PlaylistRoutes {
     const playlistController = new PlaylistController(playlistService);
 
     // Get all playlists route
-    this.router.get("/", playlistController.getAllPlaylists.bind(playlistController));
+    this.router.get(
+      "/",
+      playlistController.getAllPlaylists.bind(playlistController)
+    );
 
-    // Get playlist by ID
-    this.router.get("/:playlistId", playlistController.getPlaylist.bind(playlistController));
+    // Get playlist by channelID
+    this.router.get(
+      "/:channelId/all",
+      playlistController.getAllPlaylists.bind(playlistController)
+    );
 
     // Create playlist route
-    this.router.post("/", playlistController.createPlaylist.bind(playlistController));
+    this.router.post(
+      "/",
+      playlistController.createPlaylist.bind(playlistController)
+    );
 
     // Update playlist route
-    this.router.put("/:playlistId", playlistController.updatePlaylist.bind(playlistController));
+    this.router.put(
+      "/:playlistId",
+      playlistController.updatePlaylist.bind(playlistController)
+    );
 
     // Delete playlist route
-    this.router.delete("/:playlistId", playlistController.deletePlaylist.bind(playlistController));
+    this.router.delete(
+      "/:playlistId",
+      playlistController.deletePlaylist.bind(playlistController)
+    );
   }
 }
