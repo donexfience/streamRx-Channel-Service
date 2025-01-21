@@ -4,6 +4,9 @@ import { VideoRepository } from "../repository/VideoRepository";
 import { VideoService } from "../services/video-service";
 import { ChannelRepostiory } from "../repository/ChannelRepository";
 import { RabbitMQConnection } from "streamrx_common";
+import { VideoInteractionController } from "../controller/video-interaction-controller";
+import { VideoInteractionService } from "../services/video-interaction-service";
+import { VideoInteractionRepository } from "../repository/videoInteractionRepository";
 
 export class VideoRoutes {
   public router: Router;
@@ -26,8 +29,32 @@ export class VideoRoutes {
       videoService,
       rabbitMQConnection
     );
+    const videoInteractionRepository = new VideoInteractionRepository();
+    const videoInteractionService = new VideoInteractionService(
+      videoInteractionRepository
+    );
+    const videoInteractionController = new VideoInteractionController(
+      videoInteractionService
+    );
     //get all video route
     this.router.get("/all", videoController.getAllVideo.bind(videoController));
+
+    //video like and dislike
+
+    this.router.post(
+      "/:videoId/like",
+      videoInteractionController.toggleLike.bind(videoInteractionController)
+    );
+    this.router.post(
+      "/:videoId/dislike",
+      videoInteractionController.toggleDislike.bind(videoInteractionController)
+    );
+    this.router.get(
+      "/:videoId/interaction-status",
+      videoInteractionController.getInteractionStatus.bind(
+        videoInteractionController
+      )
+    );
 
     this.router.get(
       "/video",
@@ -56,6 +83,6 @@ export class VideoRoutes {
       videoController.deleteVideo.bind(videoController)
     );
 
-    this.router.post('/comment/:videoId')
+    this.router.post("/comment/:videoId");
   }
 }
