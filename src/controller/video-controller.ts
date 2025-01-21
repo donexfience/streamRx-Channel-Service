@@ -2,9 +2,16 @@ import { Request, RequestHandler, Response } from "express";
 import { ValidationError } from "../_lib/utils/errors/validationError";
 import { VideoService } from "../services/video-service";
 import mongoose, { Types, Document, Schema } from "mongoose";
+import { RabbitMQConnection, RabbitMQProducer } from "streamrx_common";
 
 export class VideoController {
-  constructor(private videoService: VideoService) {}
+  private rabbitMQProducer: RabbitMQProducer;
+  constructor(
+    private videoService: VideoService,
+    private readonly rabbitMQConnection: RabbitMQConnection
+  ) {
+    this.rabbitMQProducer = new RabbitMQProducer(this.rabbitMQConnection);
+  }
 
   getVideo: RequestHandler = async (req, res, next) => {
     try {
@@ -28,6 +35,8 @@ export class VideoController {
       next(error);
     }
   };
+
+  
 
   getVideoBySearchQuery: RequestHandler = async (req, res, next) => {
     try {
@@ -106,6 +115,22 @@ export class VideoController {
         videoData,
         channelId
       );
+
+      try {
+        const exchangeName = "video-created";
+        await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+          ...video,
+          event: "video-created",
+          timestamp: new Date().toISOString(),
+        });
+
+        console.log("[INFO] Successfully published channel creation event");
+      } catch (mqError) {
+        console.error(
+          "[ERROR] Failed to publish channel creation event:",
+          mqError
+        );
+      }
       res.status(201).json(video);
     } catch (error) {
       console.log(error, "error in controller");

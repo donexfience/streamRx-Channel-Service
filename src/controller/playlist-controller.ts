@@ -1,9 +1,16 @@
 import { Request, Response, RequestHandler } from "express";
 import { ValidationError } from "../_lib/utils/errors/validationError";
 import { PlaylistService } from "../services/playlist-service";
+import { RabbitMQConnection, RabbitMQProducer } from "streamrx_common";
 
 export class PlaylistController {
-  constructor(private playlistService: PlaylistService) {}
+  private rabbitMQProducer: RabbitMQProducer;
+  constructor(
+    private playlistService: PlaylistService,
+    private readonly RabbitMQConnection: RabbitMQConnection
+  ) {
+    this.rabbitMQProducer = new RabbitMQProducer(this.RabbitMQConnection);
+  }
 
   getAllPlaylists: RequestHandler = async (req, res, next) => {
     try {
@@ -73,6 +80,10 @@ export class PlaylistController {
       }
 
       const playlist = await this.playlistService.createPlaylist(playlistData);
+      const exchangeName = "playlist-created";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        ...playlist,
+      });
       res.status(201).json(playlist);
     } catch (error) {
       next(error);

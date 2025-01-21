@@ -45,6 +45,7 @@ const ChannelSchema = new Schema(
       twitch: { type: Boolean, required: true },
       discord: { type: Boolean, required: true },
     },
+    email: { type: String, required: true },
     ownerEmail: { type: String, required: true },
     schedulePreference: { type: String },
     socialLinks: {

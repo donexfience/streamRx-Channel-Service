@@ -1,5 +1,11 @@
 import mongoose, { Types, Document, Schema } from "mongoose";
 
+interface VideoNode {
+  videoId: Types.ObjectId;
+  next: Types.ObjectId | null;
+  prev: Types.ObjectId | null;
+}
+
 export interface Playlist extends Document {
   _id: Types.ObjectId;
   name: string;
@@ -9,13 +15,17 @@ export interface Playlist extends Document {
   category: string;
   tags: string[];
   thumbnailUrl: string;
-  selectedVideos: Types.ObjectId[];
-  videoUrls: string[];
-  videoIds: Types.ObjectId[];
+  videos: VideoNode[];
   status: "active" | "deleted";
   createdAt: Date;
   updatedAt: Date;
 }
+
+const videoNodeSchema = new Schema<VideoNode>({
+  videoId: { type: Schema.Types.ObjectId, ref: "Video", required: true },
+  next: { type: Schema.Types.ObjectId, ref: "Video", default: null },
+  prev: { type: Schema.Types.ObjectId, ref: "Video", default: null }
+});
 
 const playlistSchema = new Schema<Playlist>(
   {
@@ -52,25 +62,7 @@ const playlistSchema = new Schema<Playlist>(
       type: String,
       required: true,
     },
-    selectedVideos: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Video",
-        required: true,
-      },
-    ],
-    videoUrls: [
-      {
-        type: String,
-      },
-    ],
-    videoIds: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Video",
-        required: true,
-      },
-    ],
+    videos: [videoNodeSchema],
     status: {
       type: String,
       enum: ["active", "deleted"],

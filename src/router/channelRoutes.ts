@@ -3,6 +3,7 @@ import { ChannelController } from "../controller/channel-controller";
 import { ChannelService } from "../services/channel-service";
 import { ChannelRepostiory } from "../repository/ChannelRepository";
 import { UserRepository } from "../repository/userRepository";
+import { RabbitMQConnection } from "streamrx_common";
 
 // Channel routes
 export class ChannelRoutes {
@@ -13,14 +14,22 @@ export class ChannelRoutes {
     this.initRoutes();
   }
 
-  private initRoutes() {
+  private async initRoutes() {
     const channelRepository = new ChannelRepostiory();
     const userRepository = new UserRepository();
     const channelService = new ChannelService(
       channelRepository,
       userRepository
     );
-    const channelController = new ChannelController(channelService);
+    const rabbitMQConnection = RabbitMQConnection.getInstance();
+    await rabbitMQConnection.connect(
+      process.env.RABBITMQ_URL || "amqp://localhost"
+    );
+
+    const channelController = new ChannelController(
+      channelService,
+      rabbitMQConnection
+    );
     this.router.post(
       "/",
       channelController.createChannel.bind(channelController)

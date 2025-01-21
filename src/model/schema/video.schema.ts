@@ -24,9 +24,20 @@ export interface Video extends Document {
     bitrate: string;
     size: number;
   };
+  engagement: {
+    viewCount: number;
+    likeCount: number;
+    dislikeCount: number;
+    commentCount: number;
+    averageWatchDuration: number;
+    completionRate: number;
+  };
+  thumbnailUrl: string;
   visibility: "public" | "private" | "unlisted";
   createdAt: Date;
   updatedAt: Date;
+  category: string;
+  tags: string[];
   selectedPlaylist: Types.ObjectId[];
 }
 
@@ -36,6 +47,7 @@ const videoSchema = new Schema<Video>(
     title: { type: String, required: true },
     description: String,
     fileUrl: String,
+    thumbnailUrl: String,
     s3Key: String,
     presignedUrl: String,
     presignedUrlExpiry: Date,
@@ -73,6 +85,16 @@ const videoSchema = new Schema<Video>(
         required: true,
       },
     ],
+    tags: [{ type: String, index: true }],
+    category: { type: String, index: true },
+    engagement: {
+      viewCount: { type: Number, default: 0 },
+      likeCount: { type: Number, default: 0 },
+      dislikeCount: { type: Number, default: 0 },
+      commentCount: { type: Number, default: 0 },
+      averageWatchDuration: { type: Number, default: 0 },
+      completionRate: { type: Number, default: 0 },
+    },
   },
   { timestamps: true }
 );

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { PlaylistService } from "../services/playlist-service";
 import { PlaylistController } from "../controller/playlist-controller";
 import { PlaylistRepository } from "../repository/Playlist.repository";
+import { RabbitMQConnection } from "streamrx_common";
 
 export class PlaylistRoutes {
   public router: Router;
@@ -11,10 +12,17 @@ export class PlaylistRoutes {
     this.initRoutes();
   }
 
-  private initRoutes() {
+  private async initRoutes() {
     const playlistRepository = new PlaylistRepository();
     const playlistService = new PlaylistService(playlistRepository);
-    const playlistController = new PlaylistController(playlistService);
+    const rabbitMQConnection = RabbitMQConnection.getInstance();
+    await rabbitMQConnection.connect(
+      process.env.RABBITMQ_URL || "amqp://localhost"
+    );
+    const playlistController = new PlaylistController(
+      playlistService,
+      rabbitMQConnection
+    );
 
     // Get all playlists route
     this.router.get(

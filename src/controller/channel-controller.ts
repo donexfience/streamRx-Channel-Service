@@ -1,13 +1,37 @@
 import { ValidationError } from "./../_lib/utils/errors/validationError";
 import { Request, Response } from "express";
 import { ChannelService } from "../services/channel-service";
+import { RabbitMQConnection, RabbitMQProducer } from "streamrx_common";
 
 export class ChannelController {
-  constructor(private channelService: ChannelService) {}
+  private rabbitMQProducer: RabbitMQProducer;
+  constructor(
+    private channelService: ChannelService,
+
+    private readonly rabbitMQConnection: RabbitMQConnection
+  ) {
+    this.rabbitMQProducer = new RabbitMQProducer(this.rabbitMQConnection);
+  }
 
   async createChannel(req: Request, res: Response) {
     try {
       const channel = await this.channelService.createChannel(req.body);
+      console.log(channel, "channel data in the contorller");
+      try {
+        const exchangeName = "channel-created";
+        await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+          ...channel,
+          event: "channel-created",
+          timestamp: new Date().toISOString(),
+        });
+
+        console.log("[INFO] Successfully published channel creation event");
+      } catch (mqError) {
+        console.error(
+          "[ERROR] Failed to publish channel creation event:",
+          mqError
+        );
+      }
       res.status(201).json({ success: true, data: channel });
     } catch (error) {
       console.log(error, "error of channel creation in controller");

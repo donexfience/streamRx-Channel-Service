@@ -6,7 +6,9 @@ import { IChannelRepository } from "../interfaces/IChannelRepository";
 export class ChannelRepostiory implements IChannelRepository {
   async create(channelData: Partial<ChannelType>): Promise<ChannelType> {
     const channel = new Channel(channelData);
-    return await channel.save();
+    await channel.save();
+    const plainDocument = channel.toObject();
+    return plainDocument;
   }
 
   async update(

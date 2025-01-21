@@ -3,6 +3,7 @@ import { VideoController } from "../controller/video-controller";
 import { VideoRepository } from "../repository/VideoRepository";
 import { VideoService } from "../services/video-service";
 import { ChannelRepostiory } from "../repository/ChannelRepository";
+import { RabbitMQConnection } from "streamrx_common";
 
 export class VideoRoutes {
   public router: Router;
@@ -12,16 +13,26 @@ export class VideoRoutes {
     this.initRoutes();
   }
 
-  private initRoutes() {
+  private async initRoutes() {
     const videoRepository = new VideoRepository();
     const channelRepository = new ChannelRepostiory();
     const videoService = new VideoService(videoRepository, channelRepository);
-    const videoController = new VideoController(videoService);
 
+    const rabbitMQConnection = RabbitMQConnection.getInstance();
+    await rabbitMQConnection.connect(
+      process.env.RABBITMQ_URL || "amqp://localhost"
+    );
+    const videoController = new VideoController(
+      videoService,
+      rabbitMQConnection
+    );
     //get all video route
     this.router.get("/all", videoController.getAllVideo.bind(videoController));
 
-    this.router.get("/video", videoController.getVideoBySearchQuery.bind(videoController));
+    this.router.get(
+      "/video",
+      videoController.getVideoBySearchQuery.bind(videoController)
+    );
 
     // Create video record route
     this.router.post(
@@ -44,5 +55,7 @@ export class VideoRoutes {
       "/:videoId",
       videoController.deleteVideo.bind(videoController)
     );
+
+    this.router.post('/comment/:videoId')
   }
 }

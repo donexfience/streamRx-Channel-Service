@@ -5,9 +5,11 @@ import { Types } from "mongoose";
 
 export class PlaylistRepository {
   async create(playlistData: Partial<PlaylistType>): Promise<PlaylistType> {
-    console.log(playlistData, "palylist data in the repository");
+    console.log(playlistData, "playlist data in the repository");
     const playlist = new Playlist(playlistData);
-    return await playlist.save();
+    await playlist.save();
+    const plainDocument = playlist.toObject();
+    return plainDocument;
   }
 
   async update(
@@ -32,6 +34,7 @@ export class PlaylistRepository {
   ): Promise<PlaylistType[]> {
     try {
       const playlists = await Playlist.find({ channelId: channelId })
+        .populate("videos.videoId")
         .skip(skip)
         .limit(limit)
         .lean();
@@ -43,7 +46,9 @@ export class PlaylistRepository {
   }
 
   async findById(playlistId: string): Promise<PlaylistType> {
-    const playlist = await Playlist.findById(playlistId);
+    const playlist = await Playlist.findById(playlistId).populate(
+      "videos.videoId"
+    );
     if (!playlist) throw new Error("Playlist not found");
     return playlist;
   }
@@ -53,9 +58,10 @@ export class PlaylistRepository {
       return await Playlist.find(filter)
         .sort({ createdAt: -1 })
         .populate("channelId")
+        .populate("videos.videoId")
         .lean();
     } catch (error) {
-      console.error("Error in VideoRepository.findByQuery:", error);
+      console.error("Error in PlaylistRepository.findByQuery:", error);
       throw error;
     }
   }

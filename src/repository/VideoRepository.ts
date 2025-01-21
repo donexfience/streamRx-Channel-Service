@@ -4,7 +4,10 @@ import Video, { Video as VideoType } from "../model/schema/video.schema";
 export class VideoRepository implements IVideoRepository {
   async create(videoData: Partial<VideoType>): Promise<VideoType> {
     const video = new Video(videoData);
-    return await video.save();
+    await video.save();
+    const plainDocument = video.toObject();
+
+    return plainDocument;
   }
 
   async update(
@@ -47,9 +50,9 @@ export class VideoRepository implements IVideoRepository {
   async findByQuery(filter: Record<string, any>): Promise<VideoType[]> {
     try {
       return await Video.find(filter)
-        .sort({ createdAt: -1 }) 
-        .populate("channelId") 
-        .lean(); 
+        .sort({ createdAt: -1 })
+        .populate("channelId")
+        .lean();
     } catch (error) {
       console.error("Error in VideoRepository.findByQuery:", error);
       throw error;
