@@ -58,4 +58,8 @@ export class ChannelService implements IChannelService {
   async getChannelByEmail(email: string): Promise<Channel> {
     return await this.channelRepository.findByEmails(email);
   }
+
+  async getChannelById(id: string): Promise<Channel> {
+    return await this.channelRepository.findById(id);
+  }
 }

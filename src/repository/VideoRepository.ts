@@ -42,7 +42,7 @@ export class VideoRepository implements IVideoRepository {
   }
 
   async findById(videoId: string): Promise<VideoType> {
-    const video = await Video.findById(videoId);
+    const video = await Video.findById(videoId).populate("channelId");
     if (!video) throw new Error("Video not found");
     return video;
   }

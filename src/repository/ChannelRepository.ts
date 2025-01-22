@@ -28,6 +28,34 @@ export class ChannelRepostiory implements IChannelRepository {
     await Channel.findByIdAndDelete(channelId);
   }
 
+  async subscribe(channelId: string): Promise<void> {
+    console.log(channelId, "channel Id of the subscribing");
+    try {
+      const channel = await Channel.updateOne(
+        {
+          _id: channelId,
+        },
+        { $inc: { subscribersCount: 1 } }
+      );
+      console.log(channel, "channel count after subscription");
+    } catch (error) {
+      console.error(error, "error of increasing count");
+    }
+  }
+
+  async unsubscribe(channelId: string): Promise<void> {
+    try {
+      const channel = await Channel.updateOne(
+        {
+          _id: channelId,
+        },
+        { $inc: { subscribersCount: -1 } }
+      );
+    } catch (error) {
+      console.error(error, "error of increasing count");
+    }
+  }
+
   async findById(channelId: string): Promise<ChannelType> {
     const channel = await Channel.findById(channelId);
     if (!channel) {

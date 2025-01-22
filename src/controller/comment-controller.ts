@@ -78,6 +78,46 @@ export class CommentController {
     }
   };
 
+  toggleLike: RequestHandler = async (req, res, next) => {
+    try {
+      const { commentId } = req.params;
+      const { userId } = req.body;
+      console.log(commentId, userId, "id 's in the service");
+      const comment = await this.commentService.toggleLike(commentId, userId);
+      res.json(comment);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  toggleDislike: RequestHandler = async (req, res, next) => {
+    try {
+      const { commentId } = req.params;
+      const { userId } = req.body;
+      const comment = await this.commentService.toggleDislike(
+        commentId,
+        userId
+      );
+      res.json(comment);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getInteractionStatus: RequestHandler = async (req, res, next) => {
+    try {
+      const { commentId } = req.params;
+      const { userId } = req.query;
+      const status = await this.commentService.getInteractionStatus(
+        commentId,
+        userId as string
+      );
+      res.json(status);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   updateComment: RequestHandler = async (req, res, next) => {
     try {
       const { commentId } = req.params;

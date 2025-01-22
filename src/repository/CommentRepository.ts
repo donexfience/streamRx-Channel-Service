@@ -1,6 +1,7 @@
 import Comment, { CommentNode } from "../model/schema/comment.schema";
 import { ICommentRepository } from "../interfaces/ICommentRepository";
 import mongoose from "mongoose";
+import { CommentInteraction } from "../model/schema/comment.interaction.schema";
 
 export class CommentRepository implements ICommentRepository {
   async create(commentData: Partial<CommentNode>): Promise<CommentNode> {
@@ -41,6 +42,112 @@ export class CommentRepository implements ICommentRepository {
     } finally {
       session.endSession();
     }
+  }
+
+  async toggleInteraction(
+    commentId: string,
+    userId: string,
+    interactionType: "like" | "dislike"
+  ): Promise<CommentNode> {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const existingInteraction = await CommentInteraction.findOne({
+        commentId: commentId,
+        userId: userId,
+      }).session(session);
+
+      let updateQuery: any = {};
+
+      if (!existingInteraction) {
+        // Create new interaction
+        await CommentInteraction.create(
+          [
+            {
+              userId,
+              commentId,
+              type: interactionType,
+            },
+          ],
+          { session }
+        );
+
+        updateQuery = {
+          $inc: { [interactionType === "like" ? "likes" : "dislikes"]: 1 },
+        };
+      } else if (existingInteraction.type === interactionType) {
+        // Remove existing interaction (unlike/undislike)
+        await existingInteraction.deleteOne({ session });
+
+        updateQuery = {
+          $inc: { [interactionType === "like" ? "likes" : "dislikes"]: -1 },
+        };
+      } else if (existingInteraction.type === "none") {
+        // Add new interaction
+        await existingInteraction.updateOne(
+          { type: interactionType },
+          { session }
+        );
+
+        updateQuery = {
+          $inc: { [interactionType === "like" ? "likes" : "dislikes"]: 1 },
+        };
+      } else {
+        // Switch from like to dislike or vice versa
+        await existingInteraction.updateOne(
+          { type: interactionType },
+          { session }
+        );
+
+        updateQuery = {
+          $inc: {
+            likes: interactionType === "like" ? 1 : -1,
+            dislikes: interactionType === "like" ? -1 : 1,
+          },
+        };
+      }
+
+      const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        updateQuery,
+        { session, new: true }
+      );
+
+      if (!updatedComment) {
+        throw new Error("Comment not found");
+      }
+
+      await session.commitTransaction();
+      return updatedComment;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  async toggleLike(commentId: string, userId: string): Promise<CommentNode> {
+    return this.toggleInteraction(commentId, userId, "like");
+  }
+
+  async toggleDislike(commentId: string, userId: string): Promise<CommentNode> {
+    return this.toggleInteraction(commentId, userId, "dislike");
+  }
+
+  async getInteractionStatus(
+    commentId: string,
+    userId: string
+  ): Promise<{
+    liked: boolean;
+    disliked: boolean;
+  }> {
+    const interaction = await Comment.findOne({ commentId, userId });
+    return {
+      liked: interaction?.type === "like",
+      disliked: interaction?.type === "dislike",
+    };
   }
 
   async update(

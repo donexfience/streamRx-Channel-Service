@@ -78,4 +78,15 @@ export class ChannelController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
+
+  async getChannelById(req: Request, res: Response) {
+    try {
+      console.log(req.params, "emmail");
+      const channel = await this.channelService.getChannelById(req.params.id);
+      res.json(channel);
+    } catch (error) {
+      console.error(error, "error of get channel by email in controller");
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 }

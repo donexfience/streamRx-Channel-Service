@@ -4,6 +4,9 @@ import { ChannelService } from "../services/channel-service";
 import { ChannelRepostiory } from "../repository/ChannelRepository";
 import { UserRepository } from "../repository/userRepository";
 import { RabbitMQConnection } from "streamrx_common";
+import { ChannelSubscriptionRepository } from "../repository/ChannelSubscriptionRepository";
+import { ChannelSubscriptionService } from "../services/channel-subscription-service";
+import { ChannelSubscriptionController } from "../controller/channel-subscription-controller";
 
 // Channel routes
 export class ChannelRoutes {
@@ -30,6 +33,15 @@ export class ChannelRoutes {
       channelService,
       rabbitMQConnection
     );
+
+    const channelSubscriptionRepository = new ChannelSubscriptionRepository();
+    const channelSubscriptionService = new ChannelSubscriptionService(
+      channelSubscriptionRepository,
+      channelRepository
+    );
+    const channelSubscriptionController = new ChannelSubscriptionController(
+      channelSubscriptionService
+    );
     this.router.post(
       "/",
       channelController.createChannel.bind(channelController)
@@ -42,9 +54,38 @@ export class ChannelRoutes {
       "/:id",
       channelController.editChannel.bind(channelController)
     );
+
+    this.router.get(
+      "getchannel/:id",
+      channelController.getChannelById.bind(channelController)
+    );
     this.router.delete(
       "/:id",
       channelController.deleteChannel.bind(channelController)
+    );
+    this.router.post(
+      "/subscribe",
+      channelSubscriptionController.subscribe.bind(
+        channelSubscriptionController
+      )
+    );
+    this.router.post(
+      "/unsubscribe",
+      channelSubscriptionController.unsubscribe.bind(
+        channelSubscriptionController
+      )
+    );
+    this.router.get(
+      "/subscribe/status",
+      channelSubscriptionController.getStatus.bind(
+        channelSubscriptionController
+      )
+    );
+    this.router.get(
+      "/subscribe/count/:channelId",
+      channelSubscriptionController.getSubscriberCount.bind(
+        channelSubscriptionController
+      )
     );
   }
 }

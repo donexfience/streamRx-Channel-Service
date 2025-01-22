@@ -52,5 +52,20 @@ export class CommentRoutes {
       "/:commentId",
       commentController.deleteComment.bind(commentController)
     );
+
+    this.router.post(
+      "/:commentId/like",
+      commentController.toggleLike.bind(commentController)
+    );
+
+    this.router.post(
+      "/:commentId/dislike",
+      commentController.toggleDislike.bind(commentController)
+    );
+
+    this.router.get(
+      "/:commentId/interaction",
+      commentController.getInteractionStatus.bind(commentController)
+    );
   }
 }

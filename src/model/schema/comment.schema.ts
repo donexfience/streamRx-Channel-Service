@@ -14,6 +14,7 @@ export interface CommentNode extends Document {
   path: string;
   createdAt: Date;
   updatedAt: Date;
+  type: "like" | "dislike" | "none";
 }
 
 const commentSchema = new Schema<CommentNode>(
@@ -24,6 +25,7 @@ const commentSchema = new Schema<CommentNode>(
     text: { type: String, required: true },
     parentId: { type: Schema.Types.ObjectId, ref: "Comment" },
     children: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
+    type: { type: String, enum: ["like", "dislike", "none"], default: "none" },
     likes: { type: Number, default: 0 },
     dislikes: { type: Number, default: 0 },
     depth: { type: Number, default: 0 },

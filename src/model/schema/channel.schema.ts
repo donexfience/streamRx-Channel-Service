@@ -22,6 +22,7 @@ export interface Channel extends Document {
     instagram?: string;
     facebook?: string;
   };
+  subscribersCount?: number;
   streamSchedule: {
     days: string[];
     times: string[];
@@ -53,6 +54,7 @@ const ChannelSchema = new Schema(
       instagram: { type: String },
       facebook: { type: String },
     },
+    subscribersCount: { type: Number, default: 0 },
     streamSchedule: {
       days: { type: [String], default: [] },
       times: { type: [String], default: [] },

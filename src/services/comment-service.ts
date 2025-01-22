@@ -36,6 +36,18 @@ export class CommentService {
     }
   }
 
+  async toggleLike(commentId: string, userId: string): Promise<CommentNode> {
+    return await this.commentRepository.toggleInteraction(commentId, userId,'like');
+  }
+
+  async toggleDislike(commentId: string, userId: string): Promise<CommentNode> {
+    return await this.commentRepository.toggleInteraction(commentId, userId,'dislike');
+  }
+
+  async getInteractionStatus(commentId: string, userId: string) {
+    return await this.commentRepository.getInteractionStatus(commentId, userId);
+  }
+
   async getCommentsByVideoId(
     videoId: string,
     page: number = 1,
