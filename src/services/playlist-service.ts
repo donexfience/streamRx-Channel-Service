@@ -40,4 +40,12 @@ export class PlaylistService {
   async deletePlaylist(playlistId: string): Promise<void> {
     await this.playlistRepository.delete(playlistId);
   }
+
+  async getPlaylistsByIds(ids: string[]) {
+    try {
+      return await this.playlistRepository.findByIds(ids);
+    } catch (error: any) {
+      throw new Error(`Error fetching playlists: ${error.message}`);
+    }
+  }
 }

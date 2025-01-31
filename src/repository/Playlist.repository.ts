@@ -12,6 +12,24 @@ export class PlaylistRepository {
     return plainDocument;
   }
 
+  async findByIds(ids: string | string[]) {
+    console.log(ids, "ids got in the repository");
+    try {
+      const idsArray = Array.isArray(ids) ? ids : [ids];
+      const validIds = idsArray.filter((id) => Types.ObjectId.isValid(id));
+
+      if (validIds.length === 0) {
+        throw new Error("No valid playlist IDs provided.");
+      }
+
+      return await Playlist.find({
+        _id: { $in: validIds.map((id) => new Types.ObjectId(id)) },
+      });
+    } catch (error: any) {
+      throw new Error(`Repository error: ${error.message}`);
+    }
+  }
+
   async update(
     playlistId: string,
     updateData: Partial<PlaylistType>

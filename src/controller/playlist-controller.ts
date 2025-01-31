@@ -113,6 +113,29 @@ export class PlaylistController {
     }
   };
 
+  getPlaylistsByIds: RequestHandler = async (req, res, next) => {
+    try {
+      let { ids } = req.query;
+
+      const playlistIds = Array.isArray(ids)
+        ? ids.map(String)
+        : ids
+        ? [String(ids)]
+        : [];
+
+      if (playlistIds.length === 0) {
+        res.status(400).json({ error: "Missing playlist ID(s)" });
+      }
+
+      const playlists = await this.playlistService.getPlaylistsByIds(
+        playlistIds
+      );
+      res.status(200).json(playlists);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   updatePlaylist: RequestHandler = async (req, res, next) => {
     try {
       const playlistId = req.params.playlistId;

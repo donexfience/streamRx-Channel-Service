@@ -40,7 +40,8 @@ export class ChannelRoutes {
       channelRepository
     );
     const channelSubscriptionController = new ChannelSubscriptionController(
-      channelSubscriptionService
+      channelSubscriptionService,
+      rabbitMQConnection
     );
     this.router.post(
       "/",

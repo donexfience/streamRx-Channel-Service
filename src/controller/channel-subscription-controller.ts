@@ -1,13 +1,26 @@
 import { Request, Response } from "express";
 import { ChannelSubscriptionService } from "../services/channel-subscription-service";
+import { RabbitMQConnection, RabbitMQProducer } from "streamrx_common";
 
 export class ChannelSubscriptionController {
-  constructor(private service: ChannelSubscriptionService) {}
+  private rabbitMQProducer: RabbitMQProducer;
+  constructor(
+    private service: ChannelSubscriptionService,
+    private readonly rabbitMQConnection: RabbitMQConnection
+  ) {
+    this.rabbitMQProducer = new RabbitMQProducer(this.rabbitMQConnection);
+  }
 
   subscribe = async (req: Request, res: Response) => {
     try {
       const { userId, channelId } = req.body;
+
       const result = await this.service.subscribe(userId, channelId);
+      await this.rabbitMQProducer.publishToExchange(
+        "subscription-created",
+        "",
+        { userId: userId, channelId: channelId }
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to subscribe" });

@@ -41,6 +41,11 @@ export class PlaylistRoutes {
       playlistController.getPlaylist.bind(playlistController)
     );
 
+    this.router.get(
+      "/multiple",
+      playlistController.getPlaylistsByIds.bind(playlistController)
+    );
+
     // Create playlist route
     this.router.post(
       "/",
