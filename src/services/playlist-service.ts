@@ -25,9 +25,42 @@ export class PlaylistService {
     return await this.playlistRepository.findById(playlistId);
   }
 
+  async getFullPlaylistById(playlistId: string): Promise<Playlist | null> {
+    return await this.playlistRepository.getFullPlaylistById(playlistId);
+  }
+
   async getPlayListByTitle(title?: string) {
     const filter = title ? { name: { $regex: title, $options: "i" } } : {};
     return await this.playlistRepository.findByQuery(filter);
+  }
+
+  async createInitialPlaylist(
+    playlistData: Partial<Playlist>
+  ): Promise<Playlist> {
+    try {
+      return await this.playlistRepository.createInitial(playlistData);
+    } catch (error: any) {
+      throw new Error(`Failed to create initial playlist: ${error.message}`);
+    }
+  }
+
+  async updatePlaylistVideoes(
+    playlistId: string,
+    videos: Array<{
+      videoId: string;
+      videoUrl: string;
+      next: string | null;
+      prev: string | null;
+    }>
+  ) {
+    try {
+      return await this.playlistRepository.updatePlaylistsVideos(
+        playlistId,
+        videos
+      );
+    } catch (error) {
+      throw new Error("failed to update existing playlist with video");
+    }
   }
 
   async updatePlaylist(
@@ -39,6 +72,15 @@ export class PlaylistService {
 
   async deletePlaylist(playlistId: string): Promise<void> {
     await this.playlistRepository.delete(playlistId);
+  }
+
+  async getPlaylistsByChannelId(channelId: string) {
+    try {
+      return await this.playlistRepository.findByChannelId(channelId);
+    } catch (error) {
+      console.error("Error in PlaylistService.getPlaylistsByChannelId:", error);
+      throw error;
+    }
   }
 
   async getPlaylistsByIds(ids: string[]) {

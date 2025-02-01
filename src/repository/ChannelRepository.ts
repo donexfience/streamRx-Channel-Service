@@ -64,6 +64,14 @@ export class ChannelRepostiory implements IChannelRepository {
     return channel;
   }
 
+  async findByChannelId(channelId: string): Promise<ChannelType> {
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      throw new Error(`Channel with ID ${channelId} not found`);
+    }
+    return channel;
+  }
+
   async findByEmails(email: string): Promise<ChannelType> {
     const channel = await Channel.findOne()
       .populate({
@@ -89,4 +97,6 @@ export class ChannelRepostiory implements IChannelRepository {
 
     return channel;
   }
+
+
 }

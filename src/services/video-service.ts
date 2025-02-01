@@ -40,9 +40,27 @@ export class VideoService {
     return await this.videoRepository.update(videoId, updateData);
   }
 
+  async bulkUpdate(videoIds: string[], playlistId: string): Promise<Video[]> {
+    return await this.videoRepository.bulkUpdateVideoPlaylists(
+      videoIds,
+      playlistId
+    );
+  }
+
+  async updateVideoplaylist(
+    videoId: string,
+    playlistId: string
+  ): Promise<Video> {
+    return await this.videoRepository.updateVideoPlaylist(videoId, playlistId);
+  }
+
   async getAllVideo(page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     return await this.videoRepository.getAll(skip, limit);
+  }
+
+  async getVideosByChannelId(channelId: string): Promise<Video[]> {
+    return await this.videoRepository.getVideosByChannelId(channelId);
   }
 
   async getVideoById(videoId: string): Promise<Video> {

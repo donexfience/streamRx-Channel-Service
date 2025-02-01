@@ -62,4 +62,8 @@ export class ChannelService implements IChannelService {
   async getChannelById(id: string): Promise<Channel> {
     return await this.channelRepository.findById(id);
   }
+
+  async getChannelByChannelId(id: string): Promise<Channel> {
+    return await this.channelRepository.findByChannelId(id);
+  }
 }

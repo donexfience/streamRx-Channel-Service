@@ -36,8 +36,6 @@ export class VideoController {
     }
   };
 
-  
-
   getVideoBySearchQuery: RequestHandler = async (req, res, next) => {
     try {
       const { title } = req.query;
@@ -154,6 +152,80 @@ export class VideoController {
       res.status(200).json(video);
     } catch (error) {
       next(error);
+    }
+  };
+
+  updateVideoplaylist: RequestHandler = async (req, res, next) => {
+    try {
+      const videoId = req.params.playlistId;
+      const playlistId = req.body;
+      if (!videoId) {
+        throw new ValidationError([
+          {
+            fields: ["videoId"],
+            constants: "Video ID is required.",
+          },
+        ]);
+      }
+
+      const video = await this.videoService.updateVideoplaylist(
+        videoId,
+        playlistId
+      );
+      res.status(200).json(video);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  bulkUpdateVideo: RequestHandler = async (req, res, next) => {
+    try {
+      const { videoIds, playlistId } = req.body;
+
+      // Validate input
+      if (!Array.isArray(videoIds) || videoIds.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: "videoIds must be a non-empty array",
+        });
+      }
+
+      if (!playlistId) {
+        res.status(400).json({
+          success: false,
+          message: "playlistId is required",
+        });
+      }
+
+      console.log("Processing bulk update:", { videoIds, playlistId });
+
+      const updatedVideos = await this.videoService.bulkUpdate(
+        videoIds,
+        playlistId
+      );
+
+      console.log("Bulk update completed:", {
+        updatedCount: updatedVideos.length,
+        videoIds: updatedVideos.map((v) => v._id),
+      });
+
+      res.status(200).json({
+        success: true,
+        data: updatedVideos,
+      });
+    } catch (error) {
+      console.error("Bulk update failed:", error);
+      next(error);
+    }
+  };
+
+  getVideosByChannelId: RequestHandler = async (req, res, next) => {
+    try {
+      const { channelId } = req.params;
+      const videos = await this.videoService.getVideosByChannelId(channelId);
+      res.json(videos);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching videos", error });
     }
   };
 

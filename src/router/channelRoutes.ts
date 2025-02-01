@@ -43,6 +43,11 @@ export class ChannelRoutes {
       channelSubscriptionService,
       rabbitMQConnection
     );
+
+    this.router.get(
+      "/channel/id/:id",
+      channelController.getChannelByChannelId.bind(channelController)
+    );
     this.router.post(
       "/",
       channelController.createChannel.bind(channelController)
@@ -60,6 +65,7 @@ export class ChannelRoutes {
       "getchannel/:id",
       channelController.getChannelById.bind(channelController)
     );
+
     this.router.delete(
       "/:id",
       channelController.deleteChannel.bind(channelController)

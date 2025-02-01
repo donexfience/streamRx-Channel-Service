@@ -84,5 +84,20 @@ export class VideoRoutes {
     );
 
     this.router.post("/comment/:videoId");
+
+    this.router.patch(
+      "/:videoId/playlist",
+      videoController.updateVideoplaylist.bind(videoController)
+    );
+
+    this.router.patch(
+      "/bulkupdate",
+      videoController.bulkUpdateVideo.bind(videoController)
+    );
+
+    this.router.get(
+      "/channel/:channelId",
+      videoController.getVideosByChannelId.bind(videoController)
+    );
   }
 }

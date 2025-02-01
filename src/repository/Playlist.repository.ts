@@ -45,6 +45,110 @@ export class PlaylistRepository {
     await Playlist.findByIdAndDelete(playlistId);
   }
 
+  async getFullPlaylistById(playlistId: string): Promise<PlaylistType | null> {
+    try {
+      const playlist = await Playlist.findById(playlistId)
+        .populate("videos.videoId")
+        .populate("channelId")
+        .lean();
+
+      if (!playlist) throw new Error("Playlist not found");
+
+      return playlist;
+    } catch (error) {
+      console.error("Error in PlaylistRepository.getFullPlaylistById:", error);
+      throw error;
+    }
+  }
+
+  async findByChannelId(channelId: string): Promise<PlaylistType[]> {
+    try {
+      return await Playlist.find({ channelId })
+        .populate("videos.videoId")
+        .lean();
+    } catch (error) {
+      console.error("Error in PlaylistRepository.findByChannelId:", error);
+      throw error;
+    }
+  }
+
+  async createInitial(
+    playlistData: Partial<PlaylistType>
+  ): Promise<PlaylistType> {
+    try {
+      const playlist = new Playlist({
+        ...playlistData,
+        videos: [],
+        status: "active",
+      });
+      await playlist.save();
+      return playlist.toObject();
+    } catch (error) {
+      console.error("Error in PlaylistRepository.createInitial:", error);
+      throw error;
+    }
+  }
+
+  async updatePlaylistsVideos(
+    playlistId: string,
+    videos: Array<{
+      videoId: string;
+      videoUrl: string;
+      next: string | null;
+      prev: string | null;
+    }>
+  ): Promise<PlaylistType> {
+    try {
+      const playlist = await Playlist.findByIdAndUpdate(
+        playlistId,
+        {
+          $set: { videos },
+          $setOnInsert: { updatedAt: new Date() },
+        },
+        { new: true }
+      ).populate("videos.videoId");
+
+      if (!playlist) {
+        throw new Error("Playlist not found");
+      }
+
+      return playlist.toObject();
+    } catch (error) {
+      console.error("Error in PlaylistRepository.updateVideos:", error);
+      throw error;
+    }
+  }
+
+  async addVideoToPlaylist(
+    playlistId: string,
+    videoData: {
+      videoId: string;
+      videoUrl: string;
+      next: string | null;
+      prev: string | null;
+    }
+  ): Promise<PlaylistType> {
+    try {
+      const playlist = await Playlist.findByIdAndUpdate(
+        playlistId,
+        {
+          $push: { videos: videoData },
+          $set: { updatedAt: new Date() },
+        },
+        { new: true }
+      ).populate("videos.videoId");
+
+      if (!playlist) {
+        throw new Error("Playlist not found");
+      }
+
+      return playlist.toObject();
+    } catch (error) {
+      console.error("Error in PlaylistRepository.addVideoToPlaylist:", error);
+      throw error;
+    }
+  }
+
   async getAll(
     skip: number = 0,
     limit: number = 10,

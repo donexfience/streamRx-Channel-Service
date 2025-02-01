@@ -36,6 +36,7 @@ export class PlaylistRoutes {
       playlistController.getAllPlaylists.bind(playlistController)
     );
 
+
     this.router.get(
       "/playlist",
       playlistController.getPlaylist.bind(playlistController)
@@ -44,6 +45,26 @@ export class PlaylistRoutes {
     this.router.get(
       "/multiple",
       playlistController.getPlaylistsByIds.bind(playlistController)
+    );
+
+    this.router.get(
+      "/:id",
+      playlistController.getFullPlaylistById.bind(playlistController)
+    );
+
+    this.router.post(
+      "/initialPlaylist",
+      playlistController.createInitialPlaylist.bind(playlistController)
+    );
+
+    this.router.delete(
+      "/:playlistId",
+      playlistController.deletePlaylist.bind(playlistController)
+    );
+
+    this.router.patch(
+      "/:playlistId/videos",
+      playlistController.updatePlaylistsvideoes.bind(playlistController)
     );
 
     // Create playlist route

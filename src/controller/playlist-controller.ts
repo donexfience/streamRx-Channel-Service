@@ -33,6 +33,22 @@ export class PlaylistController {
     }
   };
 
+  getFullPlaylistById: RequestHandler = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      console.log(req.params, "params got");
+
+      const playlist = await this.playlistService.getFullPlaylistById(id);
+      if (!playlist) {
+        res.status(404).json({ error: "Playlist not found" });
+      }
+
+      res.status(200).json({ success: true, playlist });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getPlaylist: RequestHandler = async (req, res, next) => {
     try {
       console.log(req.query, "enjoyed");
@@ -84,6 +100,47 @@ export class PlaylistController {
       await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
         ...playlist,
       });
+      res.status(201).json(playlist);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  createInitialPlaylist: RequestHandler = async (req, res, next) => {
+    try {
+      const playlistData = req.body;
+      if (!playlistData.name || !playlistData.description) {
+        throw new ValidationError([
+          {
+            fields: ["name", "description"],
+            constants: "Name and Description are required.",
+          },
+        ]);
+      }
+
+      const playlist = await this.playlistService.createInitialPlaylist(
+        playlistData
+      );
+      const exchangeName = "playlist-created";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        ...playlist,
+      });
+      res.status(201).json(playlist);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updatePlaylistsvideoes: RequestHandler = async (req, res, next) => {
+    try {
+      const videos = req.body;
+      const { playlistId } = req.params;
+
+      const playlist = await this.playlistService.updatePlaylistVideoes(
+        playlistId,
+        videos
+      );
+      const exchangeName = "playlist-created";
       res.status(201).json(playlist);
     } catch (error) {
       next(error);
@@ -168,6 +225,31 @@ export class PlaylistController {
       await this.playlistService.deletePlaylist(playlistId);
       res.status(204).send();
     } catch (error) {
+      next(error);
+    }
+  };
+
+  getPlaylistByChannelId: RequestHandler = async (req, res, next) => {
+    try {
+      const { channelId } = req.params;
+
+      if (!channelId) {
+        res.status(400).json({ error: "Channel ID is required" });
+      }
+
+      console.log(`Fetching playlists for channel ID: ${channelId}`);
+
+      const playlists = await this.playlistService.getPlaylistsByChannelId(
+        channelId
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Playlists retrieved successfully",
+        data: playlists,
+      });
+    } catch (error) {
+      console.error("Error in getPlaylistByChannelId:", error);
       next(error);
     }
   };
