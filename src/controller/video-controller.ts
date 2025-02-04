@@ -63,8 +63,9 @@ export class VideoController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
+      const {channelId} = req.params;
 
-      const videos = await this.videoService.getAllVideo(page, limit);
+      const videos = await this.videoService.getAllVideo(page, limit,channelId);
 
       if (!videos || videos.length === 0) {
         res.status(404).json({

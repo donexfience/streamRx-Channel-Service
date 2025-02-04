@@ -31,6 +31,11 @@ export class ChannelSubscriptionController {
     try {
       const { userId, channelId } = req.body;
       const result = await this.service.unsubscribe(userId, channelId);
+      await this.rabbitMQProducer.publishToExchange(
+        "subscription-deleted",
+        "",
+        { userId: userId, channelId: channelId }
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to unsubscribe" });

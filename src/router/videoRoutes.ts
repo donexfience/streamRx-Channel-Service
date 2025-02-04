@@ -37,12 +37,15 @@ export class VideoRoutes {
       videoInteractionService
     );
     //get all video route
-    this.router.get("/all", videoController.getAllVideo.bind(videoController));
+    this.router.get(
+      "/:channelId/all",
+      videoController.getAllVideo.bind(videoController)
+    );
 
     //video like and dislike
 
     this.router.post(
-      "/:videoId/like",
+      "/:videoId/like", 
       videoInteractionController.toggleLike.bind(videoInteractionController)
     );
     this.router.post(

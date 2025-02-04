@@ -54,9 +54,9 @@ export class VideoService {
     return await this.videoRepository.updateVideoPlaylist(videoId, playlistId);
   }
 
-  async getAllVideo(page: number = 1, limit: number = 10) {
+  async getAllVideo(page: number = 1, limit: number = 10, channelId: string) {
     const skip = (page - 1) * limit;
-    return await this.videoRepository.getAll(skip, limit);
+    return await this.videoRepository.getAll(skip, limit, channelId);
   }
 
   async getVideosByChannelId(channelId: string): Promise<Video[]> {

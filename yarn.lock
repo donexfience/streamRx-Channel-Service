@@ -2952,10 +2952,10 @@ statuses@2.0.1:
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-2.0.1.tgz#55cb000ccf1d48728bd23c685a063998cf1a1b63"
   integrity sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==
 
-streamrx_common@^1.0.34:
-  version "1.0.34"
-  resolved "https://registry.yarnpkg.com/streamrx_common/-/streamrx_common-1.0.34.tgz#37b9dcdfc119c119233b9b5637d8989c9d07f8cd"
-  integrity sha512-/sOavwVbda9XDkFefCkbYahPsnYMjNExAVp5dllwyoG8lYtOfU3HGu8+mkMcX9cnjdw3VGTJcs+XyFbFqS2GGA==
+streamrx_common@^1.0.38:
+  version "1.0.38"
+  resolved "https://registry.yarnpkg.com/streamrx_common/-/streamrx_common-1.0.38.tgz#d1820b60cbcdbe843f32c7a13e0155ee31f71935"
+  integrity sha512-1aacxLs3w42xLzl0lXkXrAL2t2XHaaoQ2aYh9x5pdjaz9vR0dKxRIqyawYAVZa5/eMqiPhNtgF54MY0kexhMww==
   dependencies:
     amqplib "^0.10.5"
     del-cli "^5.1.0"

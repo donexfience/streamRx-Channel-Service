@@ -2,6 +2,7 @@ import Channel, {
   Channel as ChannelType,
 } from "./../model/schema/channel.schema";
 import { IChannelRepository } from "../interfaces/IChannelRepository";
+import UserModel, { User } from "../model/schema/user.schema";
 
 export class ChannelRepostiory implements IChannelRepository {
   async create(channelData: Partial<ChannelType>): Promise<ChannelType> {
@@ -73,16 +74,16 @@ export class ChannelRepostiory implements IChannelRepository {
   }
 
   async findByEmails(email: string): Promise<ChannelType> {
-    const channel = await Channel.findOne()
-      .populate({
-        path: "ownerId",
-        match: { email: email },
-        select: "email",
-      })
-      .exec();
-    if (!channel || !channel.ownerId) {
+    const user = await UserModel.findOne({ email }).select("_id");
+    if (!user) {
+      throw new Error(`User with email ${email} not found`);
+    }
+
+    const channel = await Channel.findOne({ ownerId: user._id }).exec();
+    if (!channel) {
       throw new Error(`Channel with owner email ${email} not found`);
     }
+
     return channel;
   }
 
@@ -97,6 +98,4 @@ export class ChannelRepostiory implements IChannelRepository {
 
     return channel;
   }
-
-
 }

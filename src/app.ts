@@ -21,7 +21,7 @@ class App {
   private initializeMiddleware() {
     this.app.use(cors({
       origin: ['http://localhost:3001'],
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],
       credentials: true,
       allowedHeaders: [
         'Origin',

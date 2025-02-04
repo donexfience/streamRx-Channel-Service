@@ -103,7 +103,6 @@ export class PlaylistRepository {
         playlistId,
         {
           $set: { videos },
-          $setOnInsert: { updatedAt: new Date() },
         },
         { new: true }
       ).populate("videos.videoId");

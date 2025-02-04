@@ -25,9 +25,13 @@ export class VideoRepository implements IVideoRepository {
     await Video.findByIdAndDelete(videoId);
   }
 
-  async getAll(skip: number = 0, limit: number = 10): Promise<VideoType[]> {
+  async getAll(
+    skip: number = 0,
+    limit: number = 10,
+    channelId: string
+  ): Promise<VideoType[]> {
     try {
-      const videos = await Video.find()
+      const videos = await Video.find({ channelId: channelId })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
