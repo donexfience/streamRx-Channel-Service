@@ -39,6 +39,8 @@ export class VideoController {
   getVideoBySearchQuery: RequestHandler = async (req, res, next) => {
     try {
       const { title } = req.query;
+      const { channelId } = req.params;
+      console.log(channelId);
       let decodedTitle;
       if (title) {
         if (typeof title === "string") {
@@ -49,7 +51,7 @@ export class VideoController {
         }
       }
 
-      const videos = await this.videoService.getVideosByTitle(
+      const videos = await this.videoService.getVideosByTitle(channelId,
         decodedTitle as string
       );
       res.status(200).json(videos);
@@ -63,9 +65,13 @@ export class VideoController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const {channelId} = req.params;
+      const { channelId } = req.params;
 
-      const videos = await this.videoService.getAllVideo(page, limit,channelId);
+      const videos = await this.videoService.getAllVideo(
+        page,
+        limit,
+        channelId
+      );
 
       if (!videos || videos.length === 0) {
         res.status(404).json({

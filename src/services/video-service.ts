@@ -31,9 +31,9 @@ export class VideoService {
     }
   }
 
-  async getVideosByTitle(title?: string) {
+  async getVideosByTitle(channelId: string, title?: string) {
     const filter = title ? { title: { $regex: title, $options: "i" } } : {};
-    return await this.videoRepository.findByQuery(filter);
+    return await this.videoRepository.findByQuery(channelId, filter);
   }
 
   async editVideo(videoId: string, updateData: Partial<Video>): Promise<Video> {

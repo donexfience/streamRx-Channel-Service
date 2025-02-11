@@ -99,19 +99,27 @@ export class PlaylistRepository {
     }>
   ): Promise<PlaylistType> {
     try {
-      const playlist = await Playlist.findByIdAndUpdate(
-        playlistId,
-        {
-          $set: { videos },
-        },
-        { new: true }
-      ).populate("videos.videoId");
-
+      const playlist = await Playlist.findById(playlistId);
       if (!playlist) {
         throw new Error("Playlist not found");
       }
 
-      return playlist.toObject();
+      console.log("Videos in repository:", JSON.stringify(videos, null, 2));
+
+      if (!Array.isArray(videos)) {
+        throw new Error("Videos must be an array");
+      }
+
+      const updatedVideos = videos.map((video) => ({
+        videoId: new Types.ObjectId(video.videoId),
+        next: video.next ? new Types.ObjectId(video.next) : null,
+        prev: video.prev ? new Types.ObjectId(video.prev) : null,
+      }));
+
+      playlist.videos = updatedVideos;
+
+      const updatedPlaylist = await playlist.save();
+      return updatedPlaylist;
     } catch (error) {
       console.error("Error in PlaylistRepository.updateVideos:", error);
       throw error;
@@ -174,9 +182,17 @@ export class PlaylistRepository {
     return playlist;
   }
 
-  async findByQuery(filter: Record<string, any>): Promise<PlaylistType[]> {
+  async findByQuery(
+    filter: Record<string, any>,
+    channelId: string
+  ): Promise<PlaylistType[]> {
     try {
-      return await Playlist.find(filter)
+      const searchFilter = {
+        ...filter,
+        channelId: new Types.ObjectId(channelId),
+      };
+
+      return await Playlist.find(searchFilter)
         .sort({ createdAt: -1 })
         .populate("channelId")
         .populate("videos.videoId")

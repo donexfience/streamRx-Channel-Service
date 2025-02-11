@@ -1,5 +1,6 @@
 import { IVideoRepository } from "../interfaces/IVideoRepository";
 import Video, { Video as VideoType } from "../model/schema/video.schema";
+import { Types } from "mongoose";
 
 export class VideoRepository implements IVideoRepository {
   async create(videoData: Partial<VideoType>): Promise<VideoType> {
@@ -51,9 +52,16 @@ export class VideoRepository implements IVideoRepository {
     return video;
   }
 
-  async findByQuery(filter: Record<string, any>): Promise<VideoType[]> {
+  async findByQuery(
+    channelId: string,
+    filter: Record<string, any>
+  ): Promise<VideoType[]> {
     try {
-      return await Video.find(filter)
+      const searchFilter = {
+        ...filter,
+        channelId: new Types.ObjectId(channelId),
+      };
+      return await Video.find(searchFilter)
         .sort({ createdAt: -1 })
         .populate("channelId")
         .lean();

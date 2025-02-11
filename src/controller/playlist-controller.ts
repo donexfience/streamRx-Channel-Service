@@ -52,8 +52,11 @@ export class PlaylistController {
   getPlaylist: RequestHandler = async (req, res, next) => {
     try {
       console.log(req.query, "enjoyed");
+
       console.log(req.query?.query);
       const { query } = req.query;
+      const { channelId } = req.params;
+      console.log(channelId, "playlist id for searching");
       let decodedTitle;
       if (!query) {
         throw new ValidationError([
@@ -71,6 +74,7 @@ export class PlaylistController {
       }
       console.log(decodedTitle, "decoeder");
       const playlist = await this.playlistService.getPlayListByTitle(
+        channelId,
         decodedTitle as string
       );
       if (!playlist) {

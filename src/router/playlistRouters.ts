@@ -36,9 +36,8 @@ export class PlaylistRoutes {
       playlistController.getAllPlaylists.bind(playlistController)
     );
 
-
     this.router.get(
-      "/playlist",
+      "/playlist/:channelId",
       playlistController.getPlaylist.bind(playlistController)
     );
 

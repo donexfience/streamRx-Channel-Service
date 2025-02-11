@@ -5,12 +5,10 @@ export interface Video extends Document {
   channelId: Types.ObjectId;
   title: string;
   description?: string;
-  fileUrl?: string;
   presignedUrl?: string;
   presignedUrlExpiry?: Date;
   status: "pending" | "processing" | "ready" | "failed";
   processingProgress: number;
-  s3Key: string;
   processingError?: string;
   metadata?: {
     originalFileName: string;
@@ -19,11 +17,14 @@ export interface Video extends Document {
     fps: number;
     duration: number;
   };
-  quality?: {
+  qualities: {
     resolution: string;
     bitrate: string;
     size: number;
-  };
+    url: string;
+    s3Key: string;
+  }[];
+  defaultQuality: string;
   engagement: {
     viewCount: number;
     likeCount: number;
@@ -38,7 +39,7 @@ export interface Video extends Document {
   updatedAt: Date;
   category: string;
   tags: string[];
-  selectedPlaylist: Types.ObjectId[];
+  selectedPlaylist?: Types.ObjectId[];
 }
 
 const videoSchema = new Schema<Video>(
@@ -46,9 +47,7 @@ const videoSchema = new Schema<Video>(
     channelId: { type: Schema.Types.ObjectId, ref: "Channel", required: true },
     title: { type: String, required: true },
     description: String,
-    fileUrl: String,
     thumbnailUrl: String,
-    s3Key: String,
     presignedUrl: String,
     presignedUrlExpiry: Date,
     status: {
@@ -68,11 +67,15 @@ const videoSchema = new Schema<Video>(
       fps: Number,
       duration: Number,
     },
-    quality: {
-      resolution: String,
-      bitrate: String,
-      size: Number,
-    },
+    qualities: [
+      {
+        resolution: String,
+        bitrate: String,
+        size: Number,
+        url: String,
+        s3Key: String,
+      },
+    ],
     visibility: {
       type: String,
       enum: ["public", "private", "unlisted"],
@@ -82,11 +85,11 @@ const videoSchema = new Schema<Video>(
       {
         type: Schema.Types.ObjectId,
         ref: "Playlist",
-        required: true,
       },
     ],
     tags: [{ type: String, index: true }],
     category: { type: String, index: true },
+    defaultQuality: { type: String, default: "720p" },
     engagement: {
       viewCount: { type: Number, default: 0 },
       likeCount: { type: Number, default: 0 },
@@ -98,8 +101,10 @@ const videoSchema = new Schema<Video>(
   },
   { timestamps: true }
 );
+
 // Indexes for better query performance
 videoSchema.index({ channelId: 1, createdAt: -1 });
 videoSchema.index({ title: "text", description: "text" });
 videoSchema.index({ tags: 1 });
+
 export default mongoose.model<Video>("Video", videoSchema);

@@ -29,9 +29,9 @@ export class PlaylistService {
     return await this.playlistRepository.getFullPlaylistById(playlistId);
   }
 
-  async getPlayListByTitle(title?: string) {
+  async getPlayListByTitle(channelId: string, title?: string) {
     const filter = title ? { name: { $regex: title, $options: "i" } } : {};
-    return await this.playlistRepository.findByQuery(filter);
+    return await this.playlistRepository.findByQuery(filter, channelId);
   }
 
   async createInitialPlaylist(
@@ -46,19 +46,29 @@ export class PlaylistService {
 
   async updatePlaylistVideoes(
     playlistId: string,
-    videos: Array<{
-      videoId: string;
-      videoUrl: string;
-      next: string | null;
-      prev: string | null;
-    }>
+    data: {
+      videos: Array<{
+        videoId: string;
+        videoUrl: string;
+        next: string | null;
+        prev: string | null;
+      }>;
+    }
   ) {
     try {
+      const { videos } = data;
+      console.log("Videos in service:", videos);
+
+      if (!Array.isArray(videos)) {
+        throw new Error("Videos must be an array");
+      }
+
       return await this.playlistRepository.updatePlaylistsVideos(
         playlistId,
         videos
       );
     } catch (error) {
+      console.error("Service error:", error);
       throw new Error("failed to update existing playlist with video");
     }
   }

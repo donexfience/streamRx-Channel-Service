@@ -60,7 +60,7 @@ export class VideoRoutes {
     );
 
     this.router.get(
-      "/video",
+      "/video/:channelId",
       videoController.getVideoBySearchQuery.bind(videoController)
     );
 
