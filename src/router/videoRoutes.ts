@@ -7,6 +7,10 @@ import { RabbitMQConnection } from "streamrx_common";
 import { VideoInteractionController } from "../controller/video-interaction-controller";
 import { VideoInteractionService } from "../services/video-interaction-service";
 import { VideoInteractionRepository } from "../repository/videoInteractionRepository";
+import { PlaylistRepository } from "../repository/Playlist.repository";
+import { RelatedVideosService } from "../services/RelatedVIdeo-service";
+import { RelatedVideosRepository } from "../repository/RelatedVideoRepository";
+import { RelatedVideosController } from "../controller/related-video-controller";
 
 export class VideoRoutes {
   public router: Router;
@@ -20,7 +24,13 @@ export class VideoRoutes {
     const videoRepository = new VideoRepository();
     const channelRepository = new ChannelRepostiory();
     const videoService = new VideoService(videoRepository, channelRepository);
-
+    const relatedVideoRepository = new RelatedVideosRepository();
+    const relatedVideoService = new RelatedVideosService(
+      relatedVideoRepository
+    );
+    const relatedVideoController = new RelatedVideosController(
+      relatedVideoService
+    );
     const rabbitMQConnection = RabbitMQConnection.getInstance();
     await rabbitMQConnection.connect(
       process.env.RABBITMQ_URL || "amqp://localhost"
@@ -45,7 +55,7 @@ export class VideoRoutes {
     //video like and dislike
 
     this.router.post(
-      "/:videoId/like", 
+      "/:videoId/like",
       videoInteractionController.toggleLike.bind(videoInteractionController)
     );
     this.router.post(
@@ -101,6 +111,10 @@ export class VideoRoutes {
     this.router.get(
       "/channel/:channelId",
       videoController.getVideosByChannelId.bind(videoController)
+    );
+    this.router.get(
+      "/videos/:videoId/related",
+      relatedVideoController.getRelatedVideos.bind(relatedVideoController)
     );
   }
 }
