@@ -42,11 +42,12 @@ export class VideoCollectionService {
   async getHistory(
     userId: string,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    search: string = ""
   ): Promise<VideoHistoryType> {
     try {
       const skip = (page - 1) * limit;
-      return await this.repository.getHistory(userId, limit, skip);
+      return await this.repository.getHistory(userId, limit, skip, search);
     } catch (error: any) {
       throw new Error(`Failed to get history: ${error.message}`);
     }

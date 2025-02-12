@@ -29,12 +29,15 @@ export class VideoCollectionController {
   async getHistory(req: Request, res: Response) {
     try {
       const { userId } = req.params;
-      const { page = 1, limit = 10 } = req.query;
+      const { page = 1, limit = 10, search = "" } = req.query;
+
       const result = await this.service.getHistory(
         userId,
         Number(page),
-        Number(limit)
+        Number(limit),
+        String(search)
       );
+
       res.status(200).json(result);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
