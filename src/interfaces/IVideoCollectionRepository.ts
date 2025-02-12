@@ -19,7 +19,8 @@ export interface IVideoCollectionRepository {
   getWatchLater(
     userId: string,
     limit: number,
-    skip: number
+    skip: number,
+    search: string
   ): Promise<WatchLaterType>;
   addToWatchLater(userId: string, videoId: string): Promise<WatchLaterType>;
   removeFromHistory(userId: string, videoId: string): Promise<VideoHistoryType>;

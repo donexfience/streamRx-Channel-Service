@@ -56,11 +56,12 @@ export class VideoCollectionService {
   async getWatchLater(
     userId: string,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    search: string = ""
   ): Promise<WatchLaterType> {
     try {
       const skip = (page - 1) * limit;
-      return await this.repository.getWatchLater(userId, limit, skip);
+      return await this.repository.getWatchLater(userId, limit, skip, search);
     } catch (error: any) {
       throw new Error(`Failed to get watch later list: ${error.message}`);
     }

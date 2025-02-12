@@ -101,7 +101,6 @@ export class VideoCollectionRepository implements IVideoCollectionRepository {
       return history;
     }
 
-
     const history = await videoHistorySchema
       .findOne(query)
       .populate("videos.videoId")
@@ -112,6 +111,48 @@ export class VideoCollectionRepository implements IVideoCollectionRepository {
     }
 
     return history;
+  }
+
+  async getWatchLater(
+    userId: string,
+    limit: number,
+    skip: number,
+    search: string
+  ): Promise<WatchLaterType> {
+    if (search) {
+      const watchLater = await watchLaterSchema
+        .findOne({ userId: userId })
+        .populate({
+          path: "videos.videoId",
+          match: {
+            $or: [
+              { title: { $regex: search, $options: "i" } },
+              { "channelId.name": { $regex: search, $options: "i" } },
+            ],
+          },
+        })
+        .exec();
+
+      if (!watchLater) {
+        throw new Error("Video history not found");
+      }
+      watchLater.videos = watchLater.videos
+        .filter((video) => video.videoId !== null)
+        .slice(skip, skip + limit);
+
+      return watchLater;
+    }
+
+    const watchLater = await watchLaterSchema
+      .findOne({ userId })
+      .populate("videos.videoId")
+      .slice("videos", [skip, limit]);
+
+    if (!watchLater) {
+      throw new Error("Watch later list not found");
+    }
+
+    return watchLater;
   }
 
   async isVideoInWatchLater(userId: string, videoId: string): Promise<boolean> {
@@ -171,22 +212,5 @@ export class VideoCollectionRepository implements IVideoCollectionRepository {
     videoId: string
   ): Promise<WatchLaterType> {
     return await watchLaterSchema.create({ userId, videos: [{ videoId }] });
-  }
-
-  async getWatchLater(
-    userId: string,
-    limit: number,
-    skip: number
-  ): Promise<WatchLaterType> {
-    const watchLater = await watchLaterSchema
-      .findOne({ userId })
-      .populate("videos.videoId")
-      .slice("videos", [skip, limit]);
-
-    if (!watchLater) {
-      throw new Error("Watch later list not found");
-    }
-
-    return watchLater;
   }
 }
