@@ -5,9 +5,10 @@ import videoHistorySchema, {
 import watchLaterSchema, {
   IWatchLater as WatchLaterType,
 } from "../model/schema/watchLaterSchema";
+import { VideoCollectionRepository } from "../repository/videoCollectionRepository";
 
 export class VideoCollectionService {
-  constructor(private readonly repository: IVideoCollectionRepository) {}
+  constructor(private readonly repository: VideoCollectionRepository) {}
 
   async addToHistory(
     userId: string,

@@ -4,6 +4,7 @@ import { VideoRoutes } from "./videoRoutes";
 import { PlaylistRoutes } from "./playlistRouters";
 import { CommentRoutes } from "./commentRouter";
 import { VideoCollectionRoutes } from "./videoCollectionRoutes";
+import { UserPlaylistRoutes } from "./playlist-user-router";
 
 class CommonRoutes {
   public router: Router;
@@ -25,6 +26,7 @@ class CommonRoutes {
     this.router.use("/playlist", new PlaylistRoutes().router);
     this.router.use("/comments", new CommentRoutes().router);
     this.router.use("/videocollection", new VideoCollectionRoutes().router);
+    this.router.use("/user-playlist", new UserPlaylistRoutes().router);
   }
 }
 
