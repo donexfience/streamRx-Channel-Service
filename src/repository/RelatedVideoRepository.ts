@@ -50,10 +50,12 @@ export class RelatedVideosRepository {
     category: string;
     limit: number;
   }) {
+    console.log(videoId, "videoId of ");
+    const videoIdObject = new Types.ObjectId(videoId);
     return Video.aggregate([
       {
         $match: {
-          _id: { $ne: videoId },
+          _id: { $ne: videoIdObject },
           $or: [{ tags: { $in: tags } }, { category }],
           status: "ready",
           visibility: "public",
@@ -85,6 +87,7 @@ export class RelatedVideosRepository {
           title: 1,
           thumbnailUrl: 1,
           channelId: 1,
+          selectedPlaylist: 1,
           engagement: 1,
           duration: 1,
           createdAt: 1,
