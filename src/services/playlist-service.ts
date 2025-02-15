@@ -12,15 +12,15 @@ export class PlaylistService {
     }
   }
 
-  async getAllPlaylists(
-    page: number = 1,
-    limit: number = 10,
-    channelId: string
-  ) {
+  async getAllPlaylists(page: number = 1, limit: number = 10, filters: any) {
     const skip = (page - 1) * limit;
-    return await this.playlistRepository.getAll(skip, limit, channelId);
+    const { playlists, total } = await this.playlistRepository.getAll(
+      skip,
+      limit,
+      filters
+    );
+    return { playlists, total };
   }
-
   async getPlaylistById(playlistId: string): Promise<Playlist> {
     return await this.playlistRepository.findById(playlistId);
   }

@@ -48,7 +48,10 @@ export class PlaylistRepository {
   async getFullPlaylistById(playlistId: string): Promise<PlaylistType | null> {
     try {
       const playlist = await Playlist.findById(playlistId)
-        .populate("videos.videoId")
+        .populate({
+          path: "videos.videoId",
+          match: { videoType: "normal" },
+        })
         .populate("channelId")
         .lean();
 
@@ -64,7 +67,10 @@ export class PlaylistRepository {
   async findByChannelId(channelId: string): Promise<PlaylistType[]> {
     try {
       return await Playlist.find({ channelId })
-        .populate("videos.videoId")
+        .populate({
+          path: "videos.videoId",
+          match: { videoType: "normal" },
+        })
         .lean();
     } catch (error) {
       console.error("Error in PlaylistRepository.findByChannelId:", error);
@@ -143,7 +149,10 @@ export class PlaylistRepository {
           $set: { updatedAt: new Date() },
         },
         { new: true }
-      ).populate("videos.videoId");
+      ).populate({
+        path: "videos.videoId",
+        match: { videoType: "normal" },
+      });
 
       if (!playlist) {
         throw new Error("Playlist not found");
@@ -157,17 +166,23 @@ export class PlaylistRepository {
   }
 
   async getAll(
-    skip: number = 0,
-    limit: number = 10,
-    channelId: string
-  ): Promise<PlaylistType[]> {
+    skip: number,
+    limit: number,
+    filters: any
+  ): Promise<{playlists: PlaylistType[]; total: number}> {
+    skip = skip || 0;
+    limit = limit || 10;
     try {
-      const playlists = await Playlist.find({ channelId: channelId })
-        .populate("videos.videoId")
+      const playlists = await Playlist.find(filters)
+        .populate({
+          path: "videos.videoId",
+        })
         .skip(skip)
         .limit(limit)
         .lean();
-      return playlists;
+
+      const total = await Playlist.countDocuments(filters);
+      return { playlists, total };
     } catch (error) {
       console.error("Error in PlaylistRepository.getAll:", error);
       throw error;
@@ -175,9 +190,10 @@ export class PlaylistRepository {
   }
 
   async findById(playlistId: string): Promise<PlaylistType> {
-    const playlist = await Playlist.findById(playlistId).populate(
-      "videos.videoId"
-    );
+    const playlist = await Playlist.findById(playlistId).populate({
+      path: "videos.videoId",
+      match: { videoType: "normal" },
+    });
     if (!playlist) throw new Error("Playlist not found");
     return playlist;
   }
@@ -195,7 +211,10 @@ export class PlaylistRepository {
       return await Playlist.find(searchFilter)
         .sort({ createdAt: -1 })
         .populate("channelId")
-        .populate("videos.videoId")
+        .populate({
+          path: "videos.videoId",
+          match: { videoType: "normal" },
+        })
         .lean();
     } catch (error) {
       console.error("Error in PlaylistRepository.findByQuery:", error);

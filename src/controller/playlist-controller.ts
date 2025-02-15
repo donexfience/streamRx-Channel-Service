@@ -17,22 +17,63 @@ export class PlaylistController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const channelId = req.params.channelId;
-      const playlists = await this.playlistService.getAllPlaylists(
+      const { visibility, category, startDate, endDate, searchQuery, status } =
+        req.query;
+
+      // Build the filter object based on the query parameters
+      const filters: any = { channelId };
+
+      if (status) filters.status = status;
+
+      if (visibility) filters.visibility = visibility;
+      if (category) filters.category = category;
+
+      // Handle date range filtering
+      if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+        const startDateObj = new Date(startDate as string);
+        const endDateObj = new Date(endDate as string);
+
+        // Check if the dates are valid
+        if (!isNaN(startDateObj.getTime()) && !isNaN(endDateObj.getTime())) {
+          filters.createdAt = {
+            $gte: startDateObj,
+            $lte: endDateObj,
+          };
+        }
+      }
+
+      if (searchQuery) {
+        filters.$or = [
+          { name: { $regex: searchQuery, $options: "i" } },
+          { description: { $regex: searchQuery, $options: "i" } },
+        ];
+      }
+
+      const { playlists, total } = await this.playlistService.getAllPlaylists(
         page,
         limit,
-        channelId
+        filters
       );
+
+      if (!playlists || playlists.length === 0) {
+        res.status(200).json({
+          success: true,
+          message: "No playlist found",
+          data: null,
+        });
+        return;
+      }
+
       res.status(200).json({
         success: true,
         message: "Playlists retrieved successfully",
         data: playlists,
-        pagination: { page, limit },
+        pagination: { page, limit, total },
       });
     } catch (error) {
       next(error);
     }
   };
-
   getFullPlaylistById: RequestHandler = async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -102,7 +143,7 @@ export class PlaylistController {
       const playlist = await this.playlistService.createPlaylist(playlistData);
       const exchangeName = "playlist-created";
       await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
-        ...playlist,
+        ...playlistData,
       });
       res.status(201).json(playlist);
     } catch (error) {
@@ -125,7 +166,7 @@ export class PlaylistController {
       const playlist = await this.playlistService.createInitialPlaylist(
         playlistData
       );
-      const exchangeName = "playlist-created";
+      const exchangeName = "initial-playlist-created";
       await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
         ...playlist,
       });
@@ -144,7 +185,12 @@ export class PlaylistController {
         playlistId,
         videos
       );
-      const exchangeName = "playlist-created";
+      const exchangeName = "playlist-videoes-updated";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        videos,
+        playlistId,
+      });
+
       res.status(201).json(playlist);
     } catch (error) {
       next(error);
@@ -211,6 +257,12 @@ export class PlaylistController {
         playlistId,
         updateData
       );
+
+      const exchangeName = "playlist-updated";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        playlistId,
+        updateData,
+      });
       res.status(200).json(updatedPlaylist);
     } catch (error) {
       next(error);
@@ -225,6 +277,10 @@ export class PlaylistController {
           { fields: ["playlistId"], constants: "Playlist ID is required." },
         ]);
       }
+      const exchangeName = "playlist-deleted";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        playlistId,
+      });
 
       await this.playlistService.deletePlaylist(playlistId);
       res.status(204).send();

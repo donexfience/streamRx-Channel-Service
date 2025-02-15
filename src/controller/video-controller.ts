@@ -51,7 +51,8 @@ export class VideoController {
         }
       }
 
-      const videos = await this.videoService.getVideosByTitle(channelId,
+      const videos = await this.videoService.getVideosByTitle(
+        channelId,
         decodedTitle as string
       );
       res.status(200).json(videos);
@@ -66,16 +67,43 @@ export class VideoController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const { channelId } = req.params;
+      const { status, visibility, category, searchQuery, dateRange } =
+        req.query;
 
-      const videos = await this.videoService.getAllVideo(
+      const filter: any = { channelId };
+      console.log(req.query, "query of the get all video ");
+
+      if (status) filter.status = status;
+      if (visibility) filter.visibility = visibility;
+      if (category) filter.category = category;
+
+      if (searchQuery) {
+        filter.$or = [
+          { title: { $regex: searchQuery, $options: "i" } },
+          { description: { $regex: searchQuery, $options: "i" } },
+          { tags: { $regex: searchQuery, $options: "i" } },
+        ];
+      }
+
+      if (dateRange) {
+        const { start, end } = JSON.parse(dateRange as string);
+        if (start && end) {
+          filter.createdAt = {
+            $gte: new Date(start),
+            $lte: new Date(end),
+          };
+        }
+      }
+
+      const { videos, total } = await this.videoService.getAllVideo(
         page,
         limit,
-        channelId
+        filter
       );
 
       if (!videos || videos.length === 0) {
-        res.status(404).json({
-          success: false,
+        res.status(200).json({
+          success: true,
           message: "No videos found",
           data: null,
         });
@@ -89,6 +117,7 @@ export class VideoController {
         pagination: {
           page,
           limit,
+          total,
         },
       });
     } catch (error) {
@@ -96,6 +125,123 @@ export class VideoController {
       next(error);
     }
   };
+
+  getRecentVideo: RequestHandler = async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const videoes = await this.videoService.getRecentVideo(page, limit);
+      if (!videoes || videoes.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: "No videos found",
+          data: null,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Videos retrieved successfully",
+        data: videoes,
+        pagination: {
+          page,
+          limit,
+        },
+      });
+    } catch (error) {
+      console.error("error in getting recent video ");
+      next(error);
+    }
+  };
+
+  getPopularVideo: RequestHandler = async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const videoes = await this.videoService.getMostPopularVideo(page, limit);
+      if (!videoes || videoes.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: "No videos found",
+          data: null,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Videos retrieved successfully",
+        data: videoes,
+        pagination: {
+          page,
+          limit,
+        },
+      });
+    } catch (error) {
+      console.error("error in getting recent video ");
+      next(error);
+    }
+  };
+
+  getMostLikedVideo: RequestHandler = async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const videoes = await this.videoService.getMostPopularVideo(page, limit);
+      if (!videoes || videoes.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: "No videos found",
+          data: null,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Videos retrieved successfully",
+        data: videoes,
+        pagination: {
+          page,
+          limit,
+        },
+      });
+    } catch (error) {
+      console.error("error in getting recent video ");
+      next(error);
+    }
+  };
+
+  getMostViewedVideo: RequestHandler = async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const videoes = await this.videoService.getMostViewedVideo(page, limit);
+      if (!videoes || videoes.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: "No videos found",
+          data: null,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Videos retrieved successfully",
+        data: videoes,
+        pagination: {
+          page,
+          limit,
+        },
+      });
+    } catch (error) {
+      console.error("error in getting recent video ");
+      next(error);
+    }
+  };
+
   createVideoRecord: RequestHandler = async (req, res, next) => {
     try {
       const videoData = req.body;
@@ -156,6 +302,11 @@ export class VideoController {
       }
 
       const video = await this.videoService.editVideo(videoId, updateData);
+      const exchangeName = "videoes-updated";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        videoId,
+        updateData,
+      });
       res.status(200).json(video);
     } catch (error) {
       next(error);
@@ -179,6 +330,12 @@ export class VideoController {
         videoId,
         playlistId
       );
+
+      const exchangeName = "videoes-playlist-updated";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        videoId,
+        playlistId,
+      });
       res.status(200).json(video);
     } catch (error) {
       next(error);
@@ -210,6 +367,12 @@ export class VideoController {
         videoIds,
         playlistId
       );
+
+      const exchangeName = "bulk-video-updated";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        videoIds,
+        playlistId,
+      });
 
       console.log("Bulk update completed:", {
         updatedCount: updatedVideos.length,
@@ -249,6 +412,11 @@ export class VideoController {
       }
 
       await this.videoService.deleteVideo(videoId);
+
+      const exchangeName = "video-deleted";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        videoId,
+      });
       res.status(204).send();
     } catch (error) {
       next(error);

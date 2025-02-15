@@ -40,6 +40,7 @@ export interface Video extends Document {
   category: string;
   tags: string[];
   selectedPlaylist?: Types.ObjectId[];
+  videoType?: "normal" | "short";
 }
 
 const videoSchema = new Schema<Video>(
@@ -59,6 +60,7 @@ const videoSchema = new Schema<Video>(
       type: Number,
       default: 0,
     },
+    videoType: { type: String, enum: ["normal", "short"], default: "normal" },
     processingError: String,
     metadata: {
       originalFileName: String,

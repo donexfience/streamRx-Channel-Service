@@ -54,9 +54,14 @@ export class VideoService {
     return await this.videoRepository.updateVideoPlaylist(videoId, playlistId);
   }
 
-  async getAllVideo(page: number = 1, limit: number = 10, channelId: string) {
+  async getAllVideo(page: number = 1, limit: number = 10, filter: any) {
     const skip = (page - 1) * limit;
-    return await this.videoRepository.getAll(skip, limit, channelId);
+    const { videos, total } = await this.videoRepository.getAll(
+      skip,
+      limit,
+      filter
+    );
+    return { videos, total };
   }
 
   async getVideosByChannelId(channelId: string): Promise<Video[]> {
@@ -69,5 +74,30 @@ export class VideoService {
 
   async deleteVideo(videoId: string): Promise<void> {
     await this.videoRepository.delete(videoId);
+  }
+
+  async getMostLikedVideo(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<Video[]> {
+    return await this.videoRepository.getMostLikedVideo(page, limit);
+  }
+
+  async getMostViewedVideo(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<Video[]> {
+    return await this.videoRepository.getMostViewedVideo(page, limit);
+  }
+
+  async getRecentVideo(page: number = 1, limit: number = 10): Promise<Video[]> {
+    return await this.videoRepository.getRecentVideo(page, limit);
+  }
+
+  async getMostPopularVideo(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<Video[]> {
+    return await this.videoRepository.getPopularVideo(page, limit);
   }
 }

@@ -116,5 +116,21 @@ export class VideoRoutes {
       "/videos/:videoId/related",
       relatedVideoController.getRelatedVideos.bind(relatedVideoController)
     );
+    this.router.get(
+      "/videos/recent",
+      videoController.getRecentVideo.bind(videoController)
+    );
+    this.router.get(
+      "/videos/popular",
+      videoController.getPopularVideo.bind(videoController)
+    );
+    this.router.get(
+      "/videos/mostviewed",
+      videoController.getPopularVideo.bind(videoController)
+    );
+    this.router.get(
+      "/videos/mostliked",
+      videoController.getPopularVideo.bind(videoController)
+    );
   }
 }

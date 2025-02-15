@@ -29,17 +29,19 @@ export class VideoRepository implements IVideoRepository {
   async getAll(
     skip: number = 0,
     limit: number = 10,
-    channelId: string
-  ): Promise<VideoType[]> {
+    filter: any
+  ): Promise<{ videos: VideoType[]; total: number }> {
     try {
-      const videos = await Video.find({ channelId: channelId })
+      const videos = await Video.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .populate("channelId")
         .lean();
 
-      return videos;
+      const total = await Video.countDocuments(filter);
+
+      return { videos, total };
     } catch (error) {
       console.error("Error in VideoRepository.getAll:", error);
       throw error;
@@ -60,6 +62,7 @@ export class VideoRepository implements IVideoRepository {
       const searchFilter = {
         ...filter,
         channelId: new Types.ObjectId(channelId),
+        videoType: "normal",
       };
       return await Video.find(searchFilter)
         .sort({ createdAt: -1 })
@@ -101,7 +104,7 @@ export class VideoRepository implements IVideoRepository {
   ): Promise<VideoType[]> {
     try {
       const result = await Video.updateMany(
-        { _id: { $in: videoIds } },
+        { _id: { $in: videoIds }, videoType: "normal" },
         {
           $addToSet: { selectedPlaylist: playlistId },
           $set: { updatedAt: new Date() },
@@ -123,7 +126,7 @@ export class VideoRepository implements IVideoRepository {
   }
 
   async getVideosByChannelId(channelId: string): Promise<VideoType[]> {
-    return await Video.find({ channelId: channelId });
+    return await Video.find({ channelId: channelId, videoType: "normal" });
   }
   async removeFromPlaylist(
     videoId: string,
@@ -154,6 +157,7 @@ export class VideoRepository implements IVideoRepository {
     try {
       const videos = await Video.find({
         selectedPlaylist: playlistId,
+        videoType: "normal",
       })
         .sort({ createdAt: -1 })
         .populate("channelId")
@@ -161,6 +165,87 @@ export class VideoRepository implements IVideoRepository {
 
       return videos;
     } catch (error) {
+      console.error("Error in VideoRepository.getVideosByPlaylist:", error);
+      throw error;
+    }
+  }
+
+  async getRecentVideo(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<VideoType[]> {
+    try {
+      const recentVideos = await Video.find({})
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip((page - 1) * limit);
+
+      return recentVideos;
+    } catch (error: any) {
+      console.error("Error in VideoRepository.getVideosByPlaylist:", error);
+      throw error;
+    }
+  }
+
+  async getPopularVideo(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<VideoType[]> {
+    try {
+      const popularVideos = await Video.aggregate([
+        {
+          $addFields: {
+            popularityScore: {
+              $add: [
+                { $multiply: ["$engagement.viewCount", 0.5] },
+                { $multiply: ["$engagement.likeCount", 0.3] },
+                { $multiply: ["$engagement.commentCount", 0.2] },
+              ],
+            },
+          },
+        },
+        {
+          $sort: { popularityScore: -1 },
+        },
+        {
+          $skip: (page - 1) * limit,
+        },
+        {
+          $limit: limit,
+        },
+      ]);
+      return popularVideos;
+    } catch (error: any) {
+      console.error("Error in VideoRepository.getVideosByPlaylist:", error);
+      throw error;
+    }
+  }
+
+  async getMostViewedVideo(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<VideoType[]> {
+    try {
+      const mostViewedVideos = await Video.find({})
+        .sort({ "engagement.viewCount": -1 })
+        .skip((page - 1) * limit);
+      return mostViewedVideos;
+    } catch (error: any) {
+      console.error("Error in VideoRepository.getVideosByPlaylist:", error);
+      throw error;
+    }
+  }
+
+  async getMostLikedVideo(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<VideoType[]> {
+    try {
+      const mostLikedVideos = await Video.find({})
+        .sort({ "engagement.likeCount": -1 })
+        .skip((page - 1) * limit);
+      return mostLikedVideos;
+    } catch (error: any) {
       console.error("Error in VideoRepository.getVideosByPlaylist:", error);
       throw error;
     }

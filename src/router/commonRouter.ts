@@ -17,7 +17,7 @@ class CommonRoutes {
   private initRoutes() {
     this.router.use((req, res, next) => {
       console.log(
-        `[${new Date().toLocaleString()}] ${req.method} ${req.originalUrl}`
+        `debug: common router [${new Date().toLocaleString()}] ${req.method} ${req.originalUrl}`
       );
       next();
     });
