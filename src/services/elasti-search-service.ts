@@ -135,6 +135,7 @@ export class ElasticsearchService {
     page: number;
     limit: number;
   }) {
+    console.log(query.searchQuery, "priting ");
     const searchQuery: { bool: { must: Array<Record<string, any>> } } = {
       bool: {
         must: [],
@@ -145,12 +146,14 @@ export class ElasticsearchService {
       searchQuery.bool.must.push({
         multi_match: {
           query: query.searchQuery,
-          fields: ["title^3", "description^2", "tags"],
+          fields: ["title","description"],
           type: "best_fields",
           fuzziness: "AUTO",
         },
       });
     }
+
+    console.log("Constructed Elasticsearch query:", searchQuery);
 
     if (query.channelId) {
       searchQuery.bool.must.push({

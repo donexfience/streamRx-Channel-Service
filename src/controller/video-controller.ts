@@ -269,8 +269,13 @@ export class VideoController {
         channelId
       );
 
-      const response = await this.elasticsearchService.indexVideo(video);
-      console.log(response, "response from elastic search ");
+      try {
+        const response = await this.elasticsearchService.indexVideo(video);
+        console.log(response, "from elastic search");
+        console.log("[INFO] Elasticsearch indexing successful:", response);
+      } catch (esError) {
+        console.error("[ERROR] Elasticsearch indexing failed:", esError);
+      }
 
       try {
         const exchangeName = "video-created";
@@ -297,7 +302,6 @@ export class VideoController {
     try {
       const {
         searchQuery,
-        channelId,
         status,
         visibility,
         category,
@@ -320,7 +324,6 @@ export class VideoController {
       }
       const searchResults = await this.elasticsearchService.searchVideos({
         searchQuery: searchQuery as string,
-        channelId: channelId as string,
         status: status as string,
         visibility: visibility as string,
         category: category as string,
@@ -331,6 +334,7 @@ export class VideoController {
         limit: parseInt(limit as string, 10),
       });
 
+      console.log(searchResults.hits, "video");
       res.status(200).json({
         success: true,
         message: "Videos retrieved successfully",
@@ -378,6 +382,33 @@ export class VideoController {
       next(error);
     }
   };
+
+  // searchAutocomplete: RequestHandler = async (req, res, next) => {
+  //   try {
+  //     const { query } = req.query;
+
+  //     if (!query) {
+  //       res.status(400).json({
+  //         success: false,
+  //         message: "Query parameter is required",
+  //       });
+  //       return;
+  //     }
+
+  //     const suggestions = await this.elasticsearchService.getSuggestions(
+  //       query as string
+  //     );
+
+  //     res.status(200).json({
+  //       success: true,
+  //       message: "Autocomplete suggestions retrieved successfully",
+  //       data: suggestions,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching autocomplete suggestions:", error);
+  //     next(error);
+  //   }
+  // };
 
   updateVideoplaylist: RequestHandler = async (req, res, next) => {
     try {

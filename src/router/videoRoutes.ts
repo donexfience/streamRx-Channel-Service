@@ -142,5 +142,9 @@ export class VideoRoutes {
       "/videos/search",
       videoController.searchVideos.bind(videoController)
     );
+    // this.router.get(
+    //   "/videos/auto-complete",
+    //   videoController.searchAutocomplete.bind(videoController)
+    // );
   }
 }
