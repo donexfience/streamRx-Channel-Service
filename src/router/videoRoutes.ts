@@ -11,6 +11,8 @@ import { PlaylistRepository } from "../repository/Playlist.repository";
 import { RelatedVideosService } from "../services/RelatedVIdeo-service";
 import { RelatedVideosRepository } from "../repository/RelatedVideoRepository";
 import { RelatedVideosController } from "../controller/related-video-controller";
+import { ElasticsearchService } from "../services/elasti-search-service";
+import client from "../config/MongoDB/elastic search/elasticSearchConnection";
 
 export class VideoRoutes {
   public router: Router;
@@ -35,9 +37,13 @@ export class VideoRoutes {
     await rabbitMQConnection.connect(
       process.env.RABBITMQ_URL || "amqp://localhost"
     );
+
+    const elasticsearchService = new ElasticsearchService(client);
+
     const videoController = new VideoController(
       videoService,
-      rabbitMQConnection
+      rabbitMQConnection,
+      elasticsearchService
     );
     const videoInteractionRepository = new VideoInteractionRepository();
     const videoInteractionService = new VideoInteractionService(
@@ -131,6 +137,10 @@ export class VideoRoutes {
     this.router.get(
       "/videos/mostliked",
       videoController.getPopularVideo.bind(videoController)
+    );
+    this.router.get(
+      "/videos/search",
+      videoController.searchVideos.bind(videoController)
     );
   }
 }

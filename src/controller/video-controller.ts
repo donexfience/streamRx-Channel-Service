@@ -3,12 +3,14 @@ import { ValidationError } from "../_lib/utils/errors/validationError";
 import { VideoService } from "../services/video-service";
 import mongoose, { Types, Document, Schema } from "mongoose";
 import { RabbitMQConnection, RabbitMQProducer } from "streamrx_common";
+import { ElasticsearchService } from "../services/elasti-search-service";
 
 export class VideoController {
   private rabbitMQProducer: RabbitMQProducer;
   constructor(
     private videoService: VideoService,
-    private readonly rabbitMQConnection: RabbitMQConnection
+    private readonly rabbitMQConnection: RabbitMQConnection,
+    private readonly elasticsearchService: ElasticsearchService
   ) {
     this.rabbitMQProducer = new RabbitMQProducer(this.rabbitMQConnection);
   }
@@ -267,6 +269,9 @@ export class VideoController {
         channelId
       );
 
+      const response = await this.elasticsearchService.indexVideo(video);
+      console.log(response, "response from elastic search ");
+
       try {
         const exchangeName = "video-created";
         await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
@@ -288,6 +293,60 @@ export class VideoController {
     }
   };
 
+  searchVideos: RequestHandler = async (req, res, next) => {
+    try {
+      const {
+        searchQuery,
+        channelId,
+        status,
+        visibility,
+        category,
+        videoType,
+        tags,
+        dateRange,
+        page = 1,
+        limit = 10,
+      } = req.query;
+
+      const parsedTags = tags ? (tags as string).split(",") : undefined;
+
+      let parsedDateRange;
+      if (dateRange) {
+        const { start, end } = JSON.parse(dateRange as string);
+        parsedDateRange = {
+          start: new Date(start),
+          end: new Date(end),
+        };
+      }
+      const searchResults = await this.elasticsearchService.searchVideos({
+        searchQuery: searchQuery as string,
+        channelId: channelId as string,
+        status: status as string,
+        visibility: visibility as string,
+        category: category as string,
+        videoType: videoType as string,
+        tags: parsedTags,
+        dateRange: parsedDateRange,
+        page: parseInt(page as string, 10),
+        limit: parseInt(limit as string, 10),
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Videos retrieved successfully",
+        data: searchResults.hits,
+        pagination: {
+          page: parseInt(page as string, 10),
+          limit: parseInt(limit as string, 10),
+          total: searchResults.total,
+        },
+      });
+    } catch (error) {
+      console.error("Error searching videos:", error);
+      next(error);
+    }
+  };
+
   editVideo: RequestHandler = async (req, res, next) => {
     try {
       const videoId = req.params.videoId;
@@ -302,6 +361,13 @@ export class VideoController {
       }
 
       const video = await this.videoService.editVideo(videoId, updateData);
+
+      const elasticresponse = await this.elasticsearchService.updateVideo(
+        videoId,
+        updateData
+      );
+      console.log(elasticresponse, "elastic response");
+
       const exchangeName = "videoes-updated";
       await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
         videoId,
@@ -368,6 +434,8 @@ export class VideoController {
         playlistId
       );
 
+      await this.elasticsearchService.bulkIndex(updatedVideos);
+
       const exchangeName = "bulk-video-updated";
       await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
         videoIds,
@@ -412,6 +480,8 @@ export class VideoController {
       }
 
       await this.videoService.deleteVideo(videoId);
+
+      await this.elasticsearchService.deleteVideo(videoId);
 
       const exchangeName = "video-deleted";
       await this.rabbitMQProducer.publishToExchange(exchangeName, "", {

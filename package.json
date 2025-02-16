@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@aws-sdk/client-s3": "^3.722.0",
+    "@elastic/elasticsearch": "^8.17.0",
     "@types/amqplib": "^0.10.6",
     "@types/aws-sdk": "^2.7.4",
     "@types/cors": "^2.8.17",
