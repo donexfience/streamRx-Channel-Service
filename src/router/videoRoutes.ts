@@ -119,6 +119,12 @@ export class VideoRoutes {
       "/channel/:channelId",
       videoController.getVideosByChannelId.bind(videoController)
     );
+
+    this.router.get(
+      "/channel/viewer/:channelId",
+      videoController.getVideosByChannelIdViewer.bind(videoController)
+    );
+
     this.router.get(
       "/videos/:videoId/related",
       relatedVideoController.getRelatedVideos.bind(relatedVideoController)

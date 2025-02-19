@@ -132,7 +132,13 @@ export class VideoController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const videoes = await this.videoService.getRecentVideo(page, limit);
+      const userId = req.query.userId as string;
+
+      const videoes = await this.videoService.getRecentVideo(
+        userId,
+        page,
+        limit
+      );
       if (!videoes || videoes.length === 0) {
         res.status(400).json({
           success: false,
@@ -161,7 +167,13 @@ export class VideoController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const videoes = await this.videoService.getMostPopularVideo(page, limit);
+      const userId = req.query.userId as string;
+
+      const videoes = await this.videoService.getMostPopularVideo(
+        userId,
+        page,
+        limit
+      );
       if (!videoes || videoes.length === 0) {
         res.status(400).json({
           success: false,
@@ -190,7 +202,14 @@ export class VideoController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const videoes = await this.videoService.getMostPopularVideo(page, limit);
+
+      const userId = req.query.userId as string;
+
+      const videoes = await this.videoService.getMostPopularVideo(
+        userId,
+        page,
+        limit
+      );
       if (!videoes || videoes.length === 0) {
         res.status(400).json({
           success: false,
@@ -219,7 +238,12 @@ export class VideoController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const videoes = await this.videoService.getMostViewedVideo(page, limit);
+      const userId = req.query.userId as string;
+      const videoes = await this.videoService.getMostViewedVideo(
+        userId,
+        page,
+        limit
+      );
       if (!videoes || videoes.length === 0) {
         res.status(400).json({
           success: false,
@@ -491,7 +515,34 @@ export class VideoController {
   getVideosByChannelId: RequestHandler = async (req, res, next) => {
     try {
       const { channelId } = req.params;
-      const videos = await this.videoService.getVideosByChannelId(channelId);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const videos = await this.videoService.getVideosByChannelId(
+        channelId,
+        page,
+        limit
+      );
+      res.json(videos);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching videos", error });
+    }
+  };
+
+  getVideosByChannelIdViewer: RequestHandler = async (req, res, next) => {
+    try {
+      console.log("hello in the video conctroller Ff");
+      const { channelId } = req.params;
+      console.log(req.query, "queryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
+      console.log(req.params, "paramsssssssssssssssssssssssssssssssssssssss");
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const userId = req.query.userId as string;
+      const videos = await this.videoService.getVideosByChannelIdViewer(
+        channelId,
+        userId,
+        page,
+        limit
+      );
       res.json(videos);
     } catch (error) {
       res.status(500).json({ message: "Error fetching videos", error });

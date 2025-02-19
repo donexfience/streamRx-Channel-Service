@@ -64,8 +64,42 @@ export class VideoService {
     return { videos, total };
   }
 
-  async getVideosByChannelId(channelId: string): Promise<Video[]> {
-    return await this.videoRepository.getVideosByChannelId(channelId);
+  async getVideosByChannelId(
+    channelId: string,
+    page: number,
+    limit: number
+  ): Promise<{ videos: Video[]; total: number }> {
+    const result = await this.videoRepository.getVideosByChannelId(
+      channelId,
+      page,
+      limit
+    );
+    return result;
+  }
+
+  async getVideosByChannelIdViewer(
+    channelId: string,
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ videos: Video[]; total: number }> {
+    console.log(
+      "channelId",
+      channelId,
+      "userId",
+      userId,
+      "page",
+      page,
+      "limit",
+      limit
+    );
+    const result = await this.videoRepository.getVideosByChannelIdViewer(
+      channelId,
+      userId,
+      page,
+      limit
+    );
+    return result;
   }
 
   async getVideoById(videoId: string): Promise<Video> {
@@ -77,21 +111,28 @@ export class VideoService {
   }
 
   async getMostLikedVideo(
-    page: number = 1,
-    limit: number = 10
+    userId: string,
+    page: number,
+    limit: number
   ): Promise<Video[]> {
-    return await this.videoRepository.getMostLikedVideo(page, limit);
+    return await this.videoRepository.getMostLikedVideo(userId, page, limit);
   }
 
   async getMostViewedVideo(
-    page: number = 1,
-    limit: number = 10
+    userId: string,
+    page: number,
+    limit: number
   ): Promise<Video[]> {
-    return await this.videoRepository.getMostViewedVideo(page, limit);
+    return await this.videoRepository.getMostViewedVideo(userId, page, limit);
   }
 
-  async getRecentVideo(page: number = 1, limit: number = 10): Promise<Video[]> {
-    return await this.videoRepository.getRecentVideo(page, limit);
+  async getRecentVideo(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<Video[]> {
+    
+    return await this.videoRepository.getRecentVideo(userId, page, limit);
   }
 
   async updateEngagementByVideoId(
@@ -110,9 +151,10 @@ export class VideoService {
     }
   }
   async getMostPopularVideo(
-    page: number = 1,
-    limit: number = 10
+    userId: string,
+    page: number,
+    limit: number
   ): Promise<Video[]> {
-    return await this.videoRepository.getPopularVideo(page, limit);
+    return await this.videoRepository.getPopularVideo(userId, page, limit);
   }
 }

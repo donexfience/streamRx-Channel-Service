@@ -1,6 +1,7 @@
 import { IVideoRepository } from "../interfaces/IVideoRepository";
 import Video, { Video as VideoType } from "../model/schema/video.schema";
 import { Types } from "mongoose";
+import ChannelSubscription from "../model/schema/subscription.schema";
 
 export class VideoRepository implements IVideoRepository {
   async create(videoData: Partial<VideoType>): Promise<VideoType> {
@@ -125,9 +126,68 @@ export class VideoRepository implements IVideoRepository {
     }
   }
 
-  async getVideosByChannelId(channelId: string): Promise<VideoType[]> {
-    return await Video.find({ channelId: channelId, videoType: "normal" });
+  async getVideosByChannelId(
+    channelId: string,
+    page: number,
+    limit: number
+  ): Promise<{ videos: VideoType[]; total: number }> {
+    const videos = await Video.find({
+      channelId: channelId,
+      videoType: "normal",
+    })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    const total = await Video.countDocuments({
+      channelId: channelId,
+    });
+
+    return { videos, total };
   }
+
+  async getVideosByChannelIdViewer(
+    channelId: string,
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ videos: VideoType[]; total: number }> {
+    console.log(
+      "channelId",
+      channelId,
+      "userId",
+      userId,
+      "page",
+      page,
+      "limit",
+      limit,
+      "in ther repostiory"
+    );
+    const channelSubscription = await ChannelSubscription.findOne({
+      userId,
+      channelId,
+    }).sort({ updatedAt: -1 });
+    console.log(channelSubscription, "subscription got");
+    const isSubscribed = channelSubscription?.status === "active" || false;
+    console.log(isSubscribed, "subscribed or not");
+    const baseQuery: any = {
+      channelId: channelId,
+      videoType: "normal",
+    };
+    if (!isSubscribed) {
+      baseQuery.visibility = "public";
+    }
+    console.log(baseQuery, "base query final");
+    const videos = await Video.find(baseQuery)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+    console.log(videos, "videos");
+    const total = await Video.countDocuments(baseQuery);
+
+    return { videos, total };
+  }
+
   async removeFromPlaylist(
     videoId: string,
     playlistId: string
@@ -171,28 +231,117 @@ export class VideoRepository implements IVideoRepository {
   }
 
   async getRecentVideo(
-    page: number = 1,
-    limit: number = 10
+    userId: string,
+    page: number,
+    limit: number
   ): Promise<VideoType[]> {
     try {
-      const recentVideos = await Video.find({ videoType: "normal" })
+      console.log("user", userId);
+      const subscribedChannels = await ChannelSubscription.find({
+        userId,
+        status: "active",
+      });
+
+      const subscribedChannelIds = subscribedChannels.map(
+        (sub) => sub.channelId
+      );
+      console.log(subscribedChannelIds, "subscribed channel IDs");
+      const videoQuery = {
+        channelId: {
+          $in: subscribedChannelIds,
+        },
+        videoType: "normal",
+        status: "ready",
+        $or: [
+          {
+            channelId: { $in: subscribedChannelIds },
+            visibility: { $in: ["public", "private"] },
+          },
+          {
+            visibility: "public",
+          },
+        ],
+      };
+
+      const recentVideos = await Video.find(videoQuery)
         .sort({ createdAt: -1 })
         .limit(limit)
-        .skip((page - 1) * limit);
+        .skip((page - 1) * limit)
+        .populate("channelId");
 
       return recentVideos;
     } catch (error: any) {
-      console.error("Error in VideoRepository.getVideosByPlaylist:", error);
+      console.error("Error in VideoRepository.getRecentVideo:", error);
+      throw error;
+    }
+  }
+
+  async getMostLikedVideo(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<VideoType[]> {
+    try {
+      const subscribedChannels = await ChannelSubscription.find({
+        userId,
+        status: "active",
+      });
+      const subscribedChannelIds = subscribedChannels.map(
+        (sub) => sub.channelId
+      );
+
+      const mostLikedVideos = await Video.find({
+        videoType: "normal",
+        $or: [
+          // For subscribed channels - show both public and private videos
+          {
+            channelId: { $in: subscribedChannelIds },
+            visibility: { $in: ["public", "private"] },
+          },
+          // For non-subscribed channels - show only public videos
+          {
+            visibility: "public",
+          },
+        ],
+      })
+        .sort({ "engagement.likeCount": -1 })
+        .skip((page - 1) * limit)
+        .limit(limit);
+      return mostLikedVideos;
+    } catch (error: any) {
+      console.error("Error in VideoRepository.getMostLikedVideo:", error);
       throw error;
     }
   }
 
   async getPopularVideo(
-    page: number = 1,
-    limit: number = 10
+    userId: string,
+    page: number,
+    limit: number
   ): Promise<VideoType[]> {
     try {
+      const subscribedChannels = await ChannelSubscription.find({
+        userId,
+        status: "active",
+      });
+      const subscribedChannelIds = subscribedChannels.map(
+        (sub) => sub.channelId
+      );
+
       const popularVideos = await Video.aggregate([
+        {
+          $match: {
+            $or: [
+              {
+                channelId: { $in: subscribedChannelIds },
+                visibility: { $in: ["public", "private"] },
+              },
+              {
+                visibility: "public",
+              },
+            ],
+          },
+        },
         {
           $addFields: {
             popularityScore: {
@@ -216,26 +365,46 @@ export class VideoRepository implements IVideoRepository {
       ]);
       return popularVideos;
     } catch (error: any) {
-      console.error("Error in VideoRepository.getVideosByPlaylist:", error);
+      console.error("Error in VideoRepository.getPopularVideo:", error);
       throw error;
     }
   }
 
   async getMostViewedVideo(
-    page: number = 1,
-    limit: number = 10
+    userId: string,
+    page: number,
+    limit: number
   ): Promise<VideoType[]> {
     try {
-      const mostViewedVideos = await Video.find({ videoType: "normal",visibility:"public" })
+      const subscribedChannels = await ChannelSubscription.find({
+        userId,
+        status: "active",
+      });
+      const subscribedChannelIds = subscribedChannels.map(
+        (sub) => sub.channelId
+      );
+
+      const mostViewedVideos = await Video.find({
+        videoType: "normal",
+        $or: [
+          {
+            channelId: { $in: subscribedChannelIds },
+            visibility: { $in: ["public", "private"] },
+          },
+          {
+            visibility: "public",
+          },
+        ],
+      })
         .sort({ "engagement.viewCount": -1 })
-        .skip((page - 1) * limit);
+        .skip((page - 1) * limit)
+        .limit(limit);
       return mostViewedVideos;
     } catch (error: any) {
-      console.error("Error in VideoRepository.getVideosByPlaylist:", error);
+      console.error("Error in VideoRepository.getMostViewedVideo:", error);
       throw error;
     }
   }
-
   async incrementEngagementCount(
     videoId: string,
     interactionType: "view" | "like" | "dislike" | "comment" | "partial_view"
@@ -258,23 +427,5 @@ export class VideoRepository implements IVideoRepository {
       return video.toObject();
     }
     return undefined;
-  }
-
-  async getMostLikedVideo(
-    page: number = 1,
-    limit: number = 10
-  ): Promise<VideoType[]> {
-    try {
-      const mostLikedVideos = await Video.find({
-        videoType: "normal",
-        visibility: "public",
-      })
-        .sort({ "engagement.likeCount": -1 })
-        .skip((page - 1) * limit);
-      return mostLikedVideos;
-    } catch (error: any) {
-      console.error("Error in VideoRepository.getVideosByPlaylist:", error);
-      throw error;
-    }
   }
 }
