@@ -1,4 +1,6 @@
 import Comment, { CommentNode } from "../model/schema/comment.schema";
+import Video from "../model/schema/video.schema";
+
 import { ICommentRepository } from "../interfaces/ICommentRepository";
 import mongoose from "mongoose";
 import { CommentInteraction } from "../model/schema/comment.interaction.schema";

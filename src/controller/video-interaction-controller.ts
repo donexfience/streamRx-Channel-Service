@@ -1,9 +1,17 @@
 import { RequestHandler } from "express";
 import { ValidationError } from "../_lib/utils/errors/validationError";
 import { VideoInteractionService } from "../services/video-interaction-service";
+import { RabbitMQConnection, RabbitMQProducer } from "streamrx_common";
 
 export class VideoInteractionController {
-  constructor(private videoInteractionService: VideoInteractionService) {}
+  private rabbitMQProducer: RabbitMQProducer;
+
+  constructor(
+    private videoInteractionService: VideoInteractionService,
+    private readonly rabbitMQConnection: RabbitMQConnection
+  ) {
+    this.rabbitMQProducer = new RabbitMQProducer(this.rabbitMQConnection);
+  }
 
   toggleLike: RequestHandler = async (req, res, next) => {
     try {
@@ -24,6 +32,11 @@ export class VideoInteractionController {
         videoId,
         userId
       );
+
+      await this.rabbitMQProducer.publishToExchange("toggle-like", "", {
+        videoId: videoId,
+        userId: userId,
+      });
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -47,6 +60,12 @@ export class VideoInteractionController {
         videoId,
         userId
       );
+
+      await this.rabbitMQProducer.publishToExchange("toggle-dislike", "", {
+        videoId: videoId,
+        userId: userId,
+      });
+
       res.status(200).json(result);
     } catch (error) {
       next(error);

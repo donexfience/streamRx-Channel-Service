@@ -8,6 +8,9 @@ import { UserRepository } from "./repository/userRepository";
 import { ChannelServiceConsumer } from "./communication/consumer";
 import CommonRoutes from "./router/commonRouter";
 import client from "./config/MongoDB/elastic search/elasticSearchConnection";
+import { VideoService } from "./services/video-service";
+import { VideoRepository } from "./repository/VideoRepository";
+import { ChannelRepostiory } from "./repository/ChannelRepository";
 
 class App {
   public app: Application;
@@ -65,8 +68,17 @@ class App {
   private async startConsuming() {
     try {
       const user_repostiory = new UserRepository();
+      const video_repository = new VideoRepository();
+      const channel_Repository = new ChannelRepostiory();
       const userService = new UserService(user_repostiory);
-      const channelServiceConsumer = new ChannelServiceConsumer(userService);
+      const videoService = new VideoService(
+        video_repository,
+        channel_Repository
+      );
+      const channelServiceConsumer = new ChannelServiceConsumer(
+        userService,
+        videoService
+      );
       await channelServiceConsumer.start();
       console.log("[INFO] Started consuming messages from RabbitMQ queues.");
     } catch (error) {

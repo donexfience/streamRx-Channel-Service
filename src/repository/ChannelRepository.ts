@@ -29,6 +29,8 @@ export class ChannelRepostiory implements IChannelRepository {
     await Channel.findByIdAndDelete(channelId);
   }
 
+
+  
   async subscribe(channelId: string): Promise<void> {
     console.log(channelId, "channel Id of the subscribing");
     try {

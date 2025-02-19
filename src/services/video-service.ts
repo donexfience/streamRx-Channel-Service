@@ -94,6 +94,21 @@ export class VideoService {
     return await this.videoRepository.getRecentVideo(page, limit);
   }
 
+  async updateEngagementByVideoId(
+    videoId: string,
+    interactionType: "view" | "like" | "dislike" | "comment"
+  ): Promise<Video | undefined> {
+    console.log(interactionType, "engament in the service ");
+    try {
+      return await this.videoRepository.incrementEngagementCount(
+        videoId,
+        interactionType
+      );
+    } catch (error) {
+      console.error("Error in updateEngagementByVideoId:", error);
+      throw new Error(`Failed to update engagement for video ${videoId}`);
+    }
+  }
   async getMostPopularVideo(
     page: number = 1,
     limit: number = 10

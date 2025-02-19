@@ -50,7 +50,8 @@ export class VideoRoutes {
       videoInteractionRepository
     );
     const videoInteractionController = new VideoInteractionController(
-      videoInteractionService
+      videoInteractionService,
+      rabbitMQConnection
     );
     //get all video route
     this.router.get(

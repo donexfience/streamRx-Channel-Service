@@ -175,7 +175,7 @@ export class VideoRepository implements IVideoRepository {
     limit: number = 10
   ): Promise<VideoType[]> {
     try {
-      const recentVideos = await Video.find({})
+      const recentVideos = await Video.find({ videoType: "normal" })
         .sort({ createdAt: -1 })
         .limit(limit)
         .skip((page - 1) * limit);
@@ -226,7 +226,7 @@ export class VideoRepository implements IVideoRepository {
     limit: number = 10
   ): Promise<VideoType[]> {
     try {
-      const mostViewedVideos = await Video.find({})
+      const mostViewedVideos = await Video.find({ videoType: "normal",visibility:"public" })
         .sort({ "engagement.viewCount": -1 })
         .skip((page - 1) * limit);
       return mostViewedVideos;
@@ -236,12 +236,39 @@ export class VideoRepository implements IVideoRepository {
     }
   }
 
+  async incrementEngagementCount(
+    videoId: string,
+    interactionType: "view" | "like" | "dislike" | "comment" | "partial_view"
+  ): Promise<VideoType | undefined> {
+    console.log(`Incrementing ${interactionType} count for video ${videoId}`);
+    const updateField = `engagement.${interactionType}Count`;
+    if (interactionType !== "partial_view") {
+      const video = await Video.findByIdAndUpdate(
+        videoId,
+        {
+          $inc: { [updateField]: 1 },
+          $set: { updatedAt: new Date() },
+        },
+        { new: true }
+      ).populate("channelId");
+
+      if (!video) {
+        throw new Error("Video not found");
+      }
+      return video.toObject();
+    }
+    return undefined;
+  }
+
   async getMostLikedVideo(
     page: number = 1,
     limit: number = 10
   ): Promise<VideoType[]> {
     try {
-      const mostLikedVideos = await Video.find({})
+      const mostLikedVideos = await Video.find({
+        videoType: "normal",
+        visibility: "public",
+      })
         .sort({ "engagement.likeCount": -1 })
         .skip((page - 1) * limit);
       return mostLikedVideos;
