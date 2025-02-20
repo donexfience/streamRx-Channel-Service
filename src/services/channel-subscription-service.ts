@@ -67,9 +67,6 @@ export class ChannelSubscriptionService {
         channelId
       );
       console.log(subscription, "status of sub");
-      if (!subscription) {
-        throw new Error("Subscription not found");
-      }
       return subscription;
     } catch (error) {
       throw new Error("Failed to get subscription status");

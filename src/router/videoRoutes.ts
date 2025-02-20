@@ -69,7 +69,7 @@ export class VideoRoutes {
       "/:videoId/dislike",
       videoInteractionController.toggleDislike.bind(videoInteractionController)
     );
-    this.router.get(
+    this.router.post(
       "/:videoId/interaction-status",
       videoInteractionController.getInteractionStatus.bind(
         videoInteractionController

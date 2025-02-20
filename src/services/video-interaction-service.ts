@@ -1,5 +1,3 @@
-
-import { ValidationError } from "../_lib/utils/errors/validationError";
 import { VideoInteractionRepository } from "../repository/videoInteractionRepository";
 
 export class VideoInteractionService {
@@ -7,27 +5,19 @@ export class VideoInteractionService {
 
   async toggleLike(videoId: string, userId: string) {
     try {
-      if (!videoId || !userId) {
-        throw new ValidationError([
-          {
-            fields: ["videoId", "userId"],
-            constants: "Video ID and User ID are required.",
-          },
-        ]);
-      }
-
-      const result = await this.videoInteractionRepository.toggleLike(videoId, userId);
-      const status = await this.videoInteractionRepository.getInteractionStatus(
-        videoId,
-        userId
-      );
+      const { liked, likeCount, disliked } =
+        await this.videoInteractionRepository.toggleLike(videoId, userId);
 
       return {
         success: true,
-        message: result.liked
+        message: liked
           ? "Video liked successfully"
           : "Video like removed successfully",
-        data: status,
+        data: {
+          liked,
+          disliked,
+          likeCount,
+        },
       };
     } catch (error) {
       console.error("Error in toggleLike service:", error);
@@ -37,30 +27,19 @@ export class VideoInteractionService {
 
   async toggleDislike(videoId: string, userId: string) {
     try {
-      if (!videoId || !userId) {
-        throw new ValidationError([
-          {
-            fields: ["videoId", "userId"],
-            constants: "Video ID and User ID are required.",
-          },
-        ]);
-      }
-
-      const result = await this.videoInteractionRepository.toggleDislike(
-        videoId,
-        userId
-      );
-      const status = await this.videoInteractionRepository.getInteractionStatus(
-        videoId,
-        userId
-      );
+      const { disliked, dislikeCount, liked } =
+        await this.videoInteractionRepository.toggleDislike(videoId, userId);
 
       return {
         success: true,
-        message: result.disliked
+        message: disliked
           ? "Video disliked successfully"
           : "Video dislike removed successfully",
-        data: status,
+        data: {
+          liked,
+          disliked,
+          dislikeCount,
+        },
       };
     } catch (error) {
       console.error("Error in toggleDislike service:", error);
@@ -70,15 +49,6 @@ export class VideoInteractionService {
 
   async getInteractionStatus(videoId: string, userId: string) {
     try {
-      if (!videoId || !userId) {
-        throw new ValidationError([
-          {
-            fields: ["videoId", "userId"],
-            constants: "Video ID and User ID are required.",
-          },
-        ]);
-      }
-
       const status = await this.videoInteractionRepository.getInteractionStatus(
         videoId,
         userId
@@ -86,6 +56,7 @@ export class VideoInteractionService {
 
       return {
         success: true,
+        message: "Interaction status retrieved successfully",
         data: status,
       };
     } catch (error) {

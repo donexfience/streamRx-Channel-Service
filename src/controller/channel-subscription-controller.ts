@@ -51,6 +51,7 @@ export class ChannelSubscriptionController {
       );
       res.status(200).json({ isSubscribed: result });
     } catch (error) {
+      console.log(error, "error of the get status ");
       res.status(500).json({ error: "Failed to get subscription status" });
     }
   };

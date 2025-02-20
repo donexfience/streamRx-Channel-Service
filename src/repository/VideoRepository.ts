@@ -335,9 +335,11 @@ export class VideoRepository implements IVideoRepository {
               {
                 channelId: { $in: subscribedChannelIds },
                 visibility: { $in: ["public", "private"] },
+                videoType: "normal",
               },
               {
                 visibility: "public",
+                videoType: "normal",
               },
             ],
           },

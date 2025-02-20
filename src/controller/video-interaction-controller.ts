@@ -1,5 +1,4 @@
 import { RequestHandler } from "express";
-import { ValidationError } from "../_lib/utils/errors/validationError";
 import { VideoInteractionService } from "../services/video-interaction-service";
 import { RabbitMQConnection, RabbitMQProducer } from "streamrx_common";
 
@@ -17,16 +16,6 @@ export class VideoInteractionController {
     try {
       const { videoId } = req.params;
       const { userId } = req.body;
-      console.log(videoId, userId, "datas got for like");
-
-      if (!videoId || !userId) {
-        throw new ValidationError([
-          {
-            fields: ["videoId", "userId"],
-            constants: "Video ID and User ID are required.",
-          },
-        ]);
-      }
 
       const result = await this.videoInteractionService.toggleLike(
         videoId,
@@ -34,9 +23,10 @@ export class VideoInteractionController {
       );
 
       await this.rabbitMQProducer.publishToExchange("toggle-like", "", {
-        videoId: videoId,
-        userId: userId,
+        videoId,
+        userId,
       });
+
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -47,14 +37,6 @@ export class VideoInteractionController {
     try {
       const { videoId } = req.params;
       const { userId } = req.body;
-      if (!videoId) {
-        throw new ValidationError([
-          {
-            fields: ["videoId", "userId"],
-            constants: "Video ID and User ID are required.",
-          },
-        ]);
-      }
 
       const result = await this.videoInteractionService.toggleDislike(
         videoId,
@@ -62,8 +44,8 @@ export class VideoInteractionController {
       );
 
       await this.rabbitMQProducer.publishToExchange("toggle-dislike", "", {
-        videoId: videoId,
-        userId: userId,
+        videoId,
+        userId,
       });
 
       res.status(200).json(result);
@@ -76,20 +58,11 @@ export class VideoInteractionController {
     try {
       const { videoId } = req.params;
       const { userId } = req.body;
-
-      if (!videoId || !userId) {
-        throw new ValidationError([
-          {
-            fields: ["videoId", "userId"],
-            constants: "Video ID and User ID are required.",
-          },
-        ]);
-      }
-
       const result = await this.videoInteractionService.getInteractionStatus(
         videoId,
         userId
       );
+
       res.status(200).json(result);
     } catch (error) {
       next(error);
