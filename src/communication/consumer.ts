@@ -14,7 +14,7 @@ export class ChannelServiceConsumer {
     this.videoService = videoService;
     this.rabbitMQConnection = RabbitMQConnection.getInstance();
     this.rabbitMQConsumer = new RabbitMQConsumer(this.rabbitMQConnection);
-  } 
+  }
 
   public async start() {
     try {
@@ -32,6 +32,10 @@ export class ChannelServiceConsumer {
       await this.rabbitMQConsumer.consumeFromExchange(
         "engagment-changed",
         this.handleEngagementUpdate.bind(this)
+      );
+      await this.rabbitMQConsumer.consumeFromExchange(
+        "userrole-changed",
+        this.handleUserUpdatedByEmailMessage.bind(this)
       );
 
       // queue based consuming
@@ -69,6 +73,21 @@ export class ChannelServiceConsumer {
       const message = JSON.parse(msg.content.toString());
       console.log("[INFO] User Updated message:", message);
       await this.userService.updateUserById(message.id, message);
+    } catch (error) {
+      console.error("[ERROR] Failed to handle user updated message:", error);
+      throw error;
+    }
+  }
+
+  private async handleUserUpdatedByEmailMessage(
+    msg: amqplib.ConsumeMessage | null
+  ) {
+    if (!msg) return;
+
+    try {
+      const message = JSON.parse(msg.content.toString());
+      console.log("[INFO] User Updated message:", message);
+      await this.userService.updateUserByEmail(message.email, message.role);
     } catch (error) {
       console.error("[ERROR] Failed to handle user updated message:", error);
       throw error;

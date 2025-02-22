@@ -17,6 +17,19 @@ export class UserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     return await UserModel.findOne({ email }).exec();
   }
+  async updateRoleByEmail(
+    email: string,
+    updateData: Partial<User>
+  ): Promise<User | null> {
+    console.log(email, updateData, "in the repository update by email");
+
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { email },
+      { $set: updateData },
+      { new: true }
+    ).exec();
+    return updatedUser;
+  }
 
   async findById(id: string): Promise<User | null> {
     return await UserModel.findById(id).exec();
