@@ -49,6 +49,13 @@ export class ChannelController {
         req.params.id,
         req.body
       );
+      const exchangeName = "channel-edited";
+      await this.rabbitMQProducer.publishToExchange(exchangeName, "", {
+        updatedData: req.body,
+        id: req.params.id,
+        event: "channel-edited",
+        timestamp: new Date().toISOString(),
+      });
       res.json(channel);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -99,5 +106,4 @@ export class ChannelController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
-  
 }

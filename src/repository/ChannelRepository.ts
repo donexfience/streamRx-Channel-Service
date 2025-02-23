@@ -1,8 +1,14 @@
+import mongoose from "mongoose";
 import Channel, {
   Channel as ChannelType,
 } from "./../model/schema/channel.schema";
+
+import Playlist, {
+  Playlist as PlaylistType,
+} from "../model/schema/playlist.schema";
 import { IChannelRepository } from "../interfaces/IChannelRepository";
 import UserModel, { User } from "../model/schema/user.schema";
+import Video, { Video as VideoType } from "../model/schema/video.schema";
 
 export class ChannelRepostiory implements IChannelRepository {
   async create(channelData: Partial<ChannelType>): Promise<ChannelType> {
@@ -16,11 +22,39 @@ export class ChannelRepostiory implements IChannelRepository {
     channelId: string,
     updateData: Partial<ChannelType>
   ): Promise<ChannelType> {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     const channel = await Channel.findByIdAndUpdate(channelId, updateData, {
       new: true,
-    });
+    }).session(session);
+
+    console.log(updateData, "update data in the repository");
+    console.log(channel, "upated data of ");
     if (!channel) {
       throw new Error(`Channel with ID ${channelId} not found`);
+    }
+    if (updateData.channelAccessibility) {
+      let newVisibility: "private" | "unlisted" | undefined;
+
+      if (updateData.channelAccessibility === "private") {
+        newVisibility = "private";
+      } else if (updateData.channelAccessibility === "unlisted") {
+        newVisibility = "unlisted";
+      }
+      if (newVisibility) {
+        const video = await Video.updateMany(
+          { channelId: channelId },
+          { visibility: newVisibility },
+          { session }
+        );
+        const playlist = await Playlist.updateMany(
+          { channelId: channelId },
+          { visibility: newVisibility },
+          { session }
+        );
+        console.log(video, playlist, "upaaaaaaaaaaaaaated videeeeeeeeeeeeeo");
+      }
     }
     return channel;
   }
@@ -29,8 +63,6 @@ export class ChannelRepostiory implements IChannelRepository {
     await Channel.findByIdAndDelete(channelId);
   }
 
-
-  
   async subscribe(channelId: string): Promise<void> {
     console.log(channelId, "channel Id of the subscribing");
     try {
